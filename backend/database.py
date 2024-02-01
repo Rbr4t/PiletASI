@@ -1,23 +1,13 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
-from sqlalchemy.orm import relationship
-from .database import Base
-from datetime import datetime
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
+SQLALCHEMY_DATABASE_URL = "sqlite:///../tickets.db"
 
-class User(Base):
-    __tablename__ = "users"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String, nullable=False)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    tickets = relationship("Ticket", back_populates="owner")
-
-
-class Ticket(Base):
-    __tablename__ = 'tickets'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    account_id = Column(Integer, ForeignKey("users.id"))
-    purchased = Column(DateTime, default=datetime.now().isoformat())
-    expiry = Column(Integer, nullable=False)
+Base = declarative_base()
