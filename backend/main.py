@@ -1,7 +1,12 @@
+import os
+
 from datetime import datetime
 from fastapi import FastAPI, Query
-from random import randint
-from typing import Annotated, List, Dict
+from typing import List
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
 
 app = FastAPI()
 
@@ -27,14 +32,12 @@ def read_item(
     """
     # check if the user is authenticated
 
-    id = randint(0, 1000000)
-    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    code = letters[randint(0, 25)] + \
-        letters[randint(0, 25)] + letters[randint(0, 25)]
-
     # check if the ticket is already in the db
 
     # check if this type of ticket is in the database
+
+    # query last ticket id and add 1
+    id = 0 + 1
 
     if expiry <= 0:
         return False
@@ -45,12 +48,12 @@ def read_item(
 
     return {
         "ticket": {
-            "id": type[0].upper() + '-' + code + f"{id:06}",
             "type": type,
             "user": name,
             "routes": routes,
             "barcode": "||| | ||  |"
         },
+        "id": id,
         "account": account,
         "purchased": datetime.now().isoformat(),
         "expiry": expiry,
@@ -64,3 +67,15 @@ def validate(ref: str):
     """
 
     return {"status": 401}
+
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///../tickets.db"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+if not os.path.isfile("./../tickets.db"):
+    Base.metadata.create_all(engine)
