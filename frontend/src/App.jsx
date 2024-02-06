@@ -1,8 +1,8 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
-import SignIn from './Signin'
-import SignUp from './Signup'
-import IndexPage from './IndexPage'
+import SignIn from './lehed/Login'
+import SignUp from './lehed/Registreeri'
+import IndexPage from './lehed/IndexLeht'
 
 function App() {
 

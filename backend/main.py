@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 
 from api import API
-from database import engine, Base
+from andmebaas import engine, Base
 
 
 if not os.path.isfile("./../tickets.db"):
@@ -14,7 +14,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"status": 200}
 
 
 app.include_router(API, prefix='/api')

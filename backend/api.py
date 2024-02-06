@@ -2,70 +2,59 @@ from fastapi import APIRouter, Query
 from typing import List
 from datetime import datetime
 
-from models import Ticket
-from database import Session
+from struktuurid import Pilet
+from andmebaas import Session
 
 API = APIRouter()
 
 
 @API.get("/")
 def index():
-    return {"status": "success"}
+    return {"status": 200}
 
 
-@API.get("/generate/{type}/{account}/")
+@API.get("/genereeri/{tyyp}/{kasutaja}/")
 def read_item(
-    type: str,
-    account: int,
+    tyyp: str,
+    kasutaja: int,
     q: List[str] = Query(default=[]),
-    expiry: int = 30,
-    name: str = ''
+    kestev: int = 30,
+    nimi: str = ''
 ):
-    """
-        Ticket type (String)
-        Ticket purchace date
-        Ticket ID (generate randomly)
-        and custom expiry(or not)
-    """
-    # check if the user is authenticated
 
-    # check if the ticket is already in the db
+    # TODO: tuvasta kasutaja
 
-    # check if this type of ticket is in the database
-
-    # query last ticket id and add 1
     id = 0 + 1
-    cur_date = datetime.now().isoformat()
+    prg_kuupv = datetime.now().isoformat()
 
-    if expiry <= 0:
+    if kestev <= 0:
         return False
 
-    routes = []
+    sihtkohad = []
     for i in range(len(q)-1):
-        routes.append({"from": q[i], "to": q[i+1]})
+        sihtkohad.append({"algus": q[i], "lõpp": q[i+1]})
 
     with Session() as session:
-        obj = Ticket(account_id=account, expiry=expiry)
+        obj = Pilet(kasutaja_id=kasutaja, kestev=kestev)
         session.add(obj)
         session.commit()
 
     return {
         "ticket": {
-            "type": type,
-            "user": name,
-            "routes": routes,
+            "type": tyyp,
+            "user": nimi,
+            "routes": sihtkohad,
         },
         "id": id,
-        "account": account,
-        "purchased": cur_date,
-        "expiry": expiry,
+        "account": kasutaja,
+        "purchased": prg_kuupv,
+        "expiry": kestev,
     }
 
 
 @API.get("/validate/{ref}")
 def validate(ref: str):
-    """
-        Validate ticket by database query
-    """
+
+    # TODO: valideeri kasutaja andmebaasi päringuga
 
     return {"status": 401}
