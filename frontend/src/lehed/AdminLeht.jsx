@@ -1,10 +1,11 @@
 import Päis from "./komponendid/Päis"
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { GlobalStyles, CssBaseline, Container } from "@mui/material";
+import { GlobalStyles, CssBaseline, Container, TextField, Button, Typography } from "@mui/material";
+import { useState } from "react";
 
 export default function AdminLeht() {
     const defaultTheme = createTheme();
-
+    
     return (
         <>
             <ThemeProvider theme={defaultTheme}>
@@ -14,13 +15,10 @@ export default function AdminLeht() {
             <Päis />
 
             <Container disableGutters maxWidth="sm" component="main" sx={{ pt: 8, pb: 6 }}>
+        
                 
 
-
-                
-                
-            </Container>
-            
+            </Container>            
                 
             </ThemeProvider>
         </>

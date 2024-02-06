@@ -38,7 +38,7 @@ export default function OstaPilet() {
     console.log(formAndmed);
     // Clear form fields after submission
     setFormAndmed({
-        algus: '',
+      algus: '',
       lastName: '',
       email: '',
       phoneNumber: '',
@@ -51,6 +51,7 @@ export default function OstaPilet() {
       <CssBaseline />
     
       <Päis />
+      <br></br>
 
       <Container disableGutters maxWidth="md" component="main" sx={{ pt: 8, pb: 6 }} >
     
