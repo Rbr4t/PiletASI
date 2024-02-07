@@ -35,7 +35,7 @@ export default function IndexPage() {
 
         <Grid container direction="row" justifyContent="center" alignItems="center" gap={5} >
 
-          <Link href="/osta">
+          <Link href="/piletid">
 
             <Card sx={{ width: 265 }}>
                 <CardActionArea>
@@ -48,9 +48,13 @@ export default function IndexPage() {
                     alt="transport piletid"
                     />
                     <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                        Osta pilet
-                    </Typography>
+                    
+                    <Link href="">
+                      <Typography gutterBottom variant="h5" component="div">
+                          Otsi pileteid
+                      </Typography>
+                    </Link>
+                    
                     
                     </CardContent>
                 </CardActionArea>

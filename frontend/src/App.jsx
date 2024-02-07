@@ -2,9 +2,12 @@ import { Route, Routes } from 'react-router-dom'
 import SignIn from './lehed/Login'
 import SignUp from './lehed/Registreeri'
 import IndexPage from './lehed/IndexLeht'
-import OstaPilet from './lehed/OstaPilet'
+import VaataPileteid from './lehed/VaataPileteid'
 import ValideeriPilet from './lehed/ValideeriPilet'
 import AdminLeht from './lehed/AdminLeht'
+import OstaPilet from './lehed/OstaPilet'
+import Tehing from './lehed/Tehing'
+
 function App() {
 
   return (
@@ -13,7 +16,9 @@ function App() {
           <Route path='/' Component={IndexPage}/>
           <Route path='/login' Component={SignIn}/>
           <Route path='/registreeri' Component={SignUp}/>
-          <Route path='/osta' Component={OstaPilet}/>
+          <Route path='/piletid' Component={VaataPileteid}/>
+          <Route path='/piletid/:piletId' Component={OstaPilet}/>
+          <Route path='/osta/:id' Component={Tehing}/>
           <Route path='/valideeri' Component={ValideeriPilet}/>
           <Route path='/admin' Component={AdminLeht}/>
       </Routes>

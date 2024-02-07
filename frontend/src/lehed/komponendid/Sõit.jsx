@@ -9,7 +9,7 @@ import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Button, ListItem, ListItemText, List } from '@mui/material';
+import { Button, ListItem, ListItemText, List, Link } from '@mui/material';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 
 const ExpandMore = styled((props) => {
@@ -49,14 +49,17 @@ export default function Sõit({liinid}) {
             
             
             <CardActions disableSpacing>
-                <Button variant='contained'>
-                    Osta pilet 
-                </Button>
+                <Link href={`/piletid/${liin.id}`}>
+                  <Button variant='contained'>
+                      Osta pilet 
+                  </Button>
+                </Link>
+                
                 <ExpandMore
-                expand={expanded[index]}
-                onClick={() => handleExpandClick(index)}
-                aria-expanded={expanded[index]}
-                aria-label="show more"
+                  expand={expanded[index]}
+                  onClick={() => handleExpandClick(index)}
+                  aria-expanded={expanded[index]}
+                  aria-label="show more"
                 >
                 <ExpandMoreIcon />
                 </ExpandMore>

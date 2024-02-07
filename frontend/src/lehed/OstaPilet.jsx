@@ -1,95 +1,129 @@
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { TextField, Container, GlobalStyles, CssBaseline, Button, Autocomplete, Grid } from '@mui/material';
-import { useState } from 'react';
-
-import Sõit from './komponendid/Sõit';
-import Päis from './komponendid/Päis';
-
-
-// TODO remove, this demo shouldn't need to reset the theme.
-const defaultTheme = createTheme();
-
-let algusKohad = ["Nõo", "Tartu"]
-let loppKohad = ["Nõo", "Tartu"]
-const peatused = [
-    {"peatused":["Tartu", "Teaduspark", "Nõo", "Elva"], "kuupäev": Date()},
-    {"peatused":["Elva", "Nõo", "Tartu"], "kuupäev": Date()}
-] 
+import Päis from "./komponendid/Päis";
+import {
+  GlobalStyles,
+  CssBaseline,
+  Container,
+  List,
+  Typography,
+  Card,
+  Grid,
+  Button,
+  CardContent,
+} from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import Chip from "@mui/joy/Chip";
 
 export default function OstaPilet() {
-  const [formAndmed, setFormAndmed] = useState({
-    algus: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-  });
+  const { piletId } = useParams();
+  const defaultTheme = createTheme();
+  const [kood, setKood] = useState("");
+  const [andmed, setAndmed] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleChange = (e) => {
-    setFormAndmed({
-      ...formAndmed,
-      [e.target.name]: e.target.value,
-    });
+  // TODO: mingi api call serverile, et saada info pileti ID kaudu peatustest jms
+  const peatused = [
+    {
+      peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"],
+      kuupäev: Date(),
+      id: 1,
+    },
+    { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2 },
+  ];
+
+  const peatus = peatused.filter((e) => e.id == piletId)[0];
+  console.log(peatus);
+
+  const handleChange = (event) => {
+    setKood(event.target.value);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // You can perform form submission logic here, such as sending data to a server
-    console.log(formAndmed);
-    // Clear form fields after submission
-    setFormAndmed({
-      algus: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
-    });
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // fetchData();
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <GlobalStyles styles={{ ul: { margin: 0, padding: 0, listStyle: 'none' }}} />
-      <CssBaseline />
-    
-      <Päis />
-      <br></br>
+    <>
+      <ThemeProvider theme={defaultTheme}>
+        <GlobalStyles
+          styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
+        />
+        <CssBaseline />
 
-      <Container disableGutters maxWidth="md" component="main" sx={{ pt: 8, pb: 6 }} >
-    
-        <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-                <Grid container direction="row" justifyContent="center" alignItems="center" gap={5} >
-                    <Autocomplete
-                        disablePortal
-                        id="algus"
-                        options={algusKohad}
-                        sx={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label="Alguskoht" />}
-                    />
-                    <ArrowForwardIosIcon></ArrowForwardIosIcon>
-                    <Autocomplete
-                        disablePortal
-                        id="lopp"
-                        options={loppKohad}
-                        sx={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label="Sihtkoht" />}
-                    />
-                    <Button
+        <Päis />
+
+        <Container
+          disableGutters
+          maxWidth="sm"
+          component="main"
+          sx={{ pt: 8, pb: 6 }}
+        >
+          <Grid alignItems="center" justifyContent="center">
+            <Typography variant="h1">
+              {peatus.peatused[0] +
+                " - " +
+                peatus.peatused[peatus.peatused.length - 1]}{" "}
+            </Typography>
+
+            <Card>
+              <CardContent>
+                <Chip variant="solid" color="primary">
+                  Traspordi ID: {piletId}
+                </Chip>
+                <List>
+                  {peatus.peatused.map((d, index) => (
+                    <Grid container justifyContent="space-around" key={index}>
+                      <Grid
+                        container
+                        item
+                        xs={6}
+                        direction="column"
+                        justifyContent="s"
+                        alignItems="start"
+                      >
+                        <Typography variant="h5">{d}</Typography>
+                      </Grid>
+                      <Grid
+                        container
+                        item
+                        xs={6}
+                        direction="column"
+                        alignItems="end"
+                        justifyContent="center"
+                        paddingRight={5}
+                      >
+                        <Typography>kellaeg</Typography>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <Grid direction="row">
+                <CardContent>
+                  <Typography variant="subtitle1">Osta pilet: </Typography>
+                  <Button href={`/osta/${piletId}`} variant="outlined">
+                    Külalisena
+                  </Button>
+
+                  {/* TODO: kontrolli kas kasutaja on sisse loginud */}
+                  <Button
+                    disabled={true}
+                    href="/osta/${piletId}"
                     variant="contained"
-                    color="primary"
-
-                    type="submit"
-                >
-                    Otsi
-                </Button>
-                </Grid>
-                            
-        </form>
-
-        <Container>
-            <Sõit liinid={peatused} kuupäev={Date()} />
+                  >
+                    Kasutajana
+                  </Button>
+                </CardContent>
+              </Grid>
+            </Card>
+          </Grid>
         </Container>
-      </Container>
-     
-        
-    </ThemeProvider>
+      </ThemeProvider>
+    </>
   );
 }
