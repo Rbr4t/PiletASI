@@ -13,7 +13,6 @@ import {
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import Chip from "@mui/joy/Chip";
 
 export default function OstaPilet() {
   const { piletId } = useParams();
@@ -69,9 +68,7 @@ export default function OstaPilet() {
 
             <Card>
               <CardContent>
-                <Chip variant="solid" color="primary">
-                  Traspordi ID: {piletId}
-                </Chip>
+                
                 <List>
                   {peatus.peatused.map((d, index) => (
                     <Grid container justifyContent="space-around" key={index}>
