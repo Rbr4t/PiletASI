@@ -99,6 +99,8 @@ export default function OstaPilet() {
                     </Grid>
                   ))}
                 </List>
+
+                <Typography>Hind: 5€</Typography>
               </CardContent>
             </Card>
 

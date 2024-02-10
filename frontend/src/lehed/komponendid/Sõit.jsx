@@ -14,6 +14,7 @@ import {
   Collapse,
   IconButton,
   Typography,
+  Container,
 } from "@mui/material";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -39,13 +40,20 @@ export default function Sõit({ liinid }) {
   };
 
   return (
-    <>
+    <List style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
       {liinid.map((liin, index) => (
         <Card key={index}>
           <CardHeader
             action={
-              <IconButton>
+              <IconButton
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <DirectionsBusIcon />
+                <Typography>5$</Typography>
               </IconButton>
             }
             title={
@@ -74,7 +82,7 @@ export default function Sõit({ liinid }) {
               <List>
                 {liin.peatused.map((d, index) => (
                   <ListItem key={index}>
-                    <ListItemText primary={`${d}`} secondary={"kellaaeg"} />
+                    <ListItemText primary={`${d}`} secondary={`kellaaeg`} />
                   </ListItem>
                 ))}
               </List>
@@ -82,6 +90,6 @@ export default function Sõit({ liinid }) {
           </Collapse>
         </Card>
       ))}
-    </>
+    </List>
   );
 }

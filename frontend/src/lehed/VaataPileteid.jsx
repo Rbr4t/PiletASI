@@ -19,6 +19,7 @@ const defaultTheme = createTheme();
 
 let algusKohad = ["Nõo", "Tartu"];
 let loppKohad = ["Nõo", "Tartu"];
+let piletTüübid = ["Buss", "Rong", "Rakett"];
 
 const peatused = [
   { peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"], kuupäev: Date(), id: 1 },
@@ -68,37 +69,52 @@ export default function VaataPileteid() {
         maxWidth="md"
         component="main"
         sx={{ pt: 8, pb: 6 }}
+        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
       >
-        <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-          <Grid
-            container
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            gap={5}
-          >
-            <Autocomplete
-              disablePortal
-              id="algus"
-              options={algusKohad}
-              sx={{ width: 300 }}
-              renderInput={(params) => (
-                <TextField {...params} label="Alguskoht" />
-              )}
-            />
-            <ArrowForwardIosIcon></ArrowForwardIosIcon>
-            <Autocomplete
-              disablePortal
-              id="lopp"
-              options={loppKohad}
-              sx={{ width: 300 }}
-              renderInput={(params) => (
-                <TextField {...params} label="Sihtkoht" />
-              )}
-            />
-            <Button variant="contained" color="primary" type="submit">
-              Otsi
-            </Button>
+        <form
+          noValidate
+          autoComplete="off"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onSubmit={handleSubmit}
+        >
+          <Grid>
+            <Grid container item marginBottom={1}>
+              <Autocomplete
+                disablePortal
+                id="tyyp"
+                options={piletTüübid}
+                sx={{ width: 300 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Pileti tüüp" />
+                )}
+              />
+            </Grid>
+
+            <Grid container alignItems="center" item direction="row">
+              <Autocomplete
+                disablePortal
+                id="algus"
+                options={algusKohad}
+                sx={{ width: 300 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Alguskoht" />
+                )}
+              />
+              <ArrowForwardIosIcon></ArrowForwardIosIcon>
+              <Autocomplete
+                disablePortal
+                id="lopp"
+                options={loppKohad}
+                sx={{ width: 300 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Sihtkoht" />
+                )}
+              />
+            </Grid>
           </Grid>
         </form>
 
