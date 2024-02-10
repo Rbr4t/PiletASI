@@ -1,21 +1,48 @@
-import { AppBar, Toolbar, Typography, Button } from "@mui/material"
+import { AppBar, Toolbar, Typography, Button, Link, Box } from "@mui/material";
+import { EmojiTransportation } from "@mui/icons-material";
+
 export default function Päis() {
-    return (
-        <AppBar
-        position="static"
-        color="default"
-        elevation={0}
-        sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+  let logitud = false;
+  return (
+    <AppBar
+      position="static"
+      color="default"
+      elevation={0}
+      sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+    >
+      <Toolbar
+        sx={{ flexWrap: "wrap" }}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          minHeight: "4rem",
+        }}
       >
-        <Toolbar sx={{ flexWrap: 'wrap' }}>
-          <Typography variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
-            ***
-          </Typography>
-          
-          <Button href="/login" variant='contained' sx={{ my: 1, mx: 1.5 }}>
+        <Box>
+          <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+            <Typography
+              href="/"
+              variant="h5"
+              color="inherit"
+              noWrap
+              sx={{ flexGrow: 1 }}
+            >
+              <EmojiTransportation />
+              Transpordi huub
+            </Typography>
+          </Link>
+        </Box>
+
+        {logitud ? (
+          <Button href="/" variant="contained" sx={{ my: 1, mx: 1.5 }}>
+            Logi välja
+          </Button>
+        ) : (
+          <Button href="/login" variant="contained" sx={{ my: 1, mx: 1.5 }}>
             Logi sisse
           </Button>
-        </Toolbar>
-      </AppBar>
-    )
+        )}
+      </Toolbar>
+    </AppBar>
+  );
 }

@@ -1,6 +1,11 @@
+/* eslint-disable react/prop-types */
 import Päis from "./komponendid/Päis";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { CenterFocusStrong, Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  CenterFocusStrong,
+  Delete as DeleteIcon,
+  FourMp,
+} from "@mui/icons-material";
 import {
   Container,
   Typography,
@@ -26,7 +31,7 @@ import { useState } from "react";
 
 let transpordiVahendid = ["buss", "rong", "lennuk"];
 
-export default function AdminRedigeeri() {
+function AdminRedigeeri() {
   const defaultTheme = createTheme();
 
   const [formData, setFormData] = useState({
@@ -97,8 +102,20 @@ export default function AdminRedigeeri() {
   };
 
   const handlePublish = () => {
+    if (formData.customTransportType !== "") {
+      formData.transportType = formData.customTransportType;
+    }
+    delete formData.customTransportType;
+
     // Add your logic to publish the form data
     console.log(formData);
+
+    setFormData({
+      transportType: "",
+      customTransportType: "",
+      price: "",
+      stops: [{ id: 0, stop: "", timestamp: null }],
+    });
   };
 
   return (
@@ -111,7 +128,7 @@ export default function AdminRedigeeri() {
 
         <Päis />
 
-        <Container>
+        <Container sx={{ pt: 8, pb: 6 }}>
           <Typography variant="h4" gutterBottom>
             Lisa uus marsruut
           </Typography>
@@ -225,3 +242,4 @@ export default function AdminRedigeeri() {
     </>
   );
 }
+export default AdminRedigeeri;

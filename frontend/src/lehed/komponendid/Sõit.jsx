@@ -40,12 +40,19 @@ export default function Sõit({ liinid }) {
   };
 
   return (
-    <List style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+    <List
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.5rem",
+        marginTop: 0,
+      }}
+    >
       {liinid.map((liin, index) => (
         <Card key={index}>
           <CardHeader
             action={
-              <IconButton
+              <Container
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -53,8 +60,8 @@ export default function Sõit({ liinid }) {
                 }}
               >
                 <DirectionsBusIcon />
-                <Typography>5$</Typography>
-              </IconButton>
+                <Typography>5€</Typography>
+              </Container>
             }
             title={
               liin.peatused[0] + " - " + liin.peatused[liin.peatused.length - 1]

@@ -112,7 +112,6 @@ export default function OstaPilet() {
                     Külalisena
                   </Button>
 
-                  {/* TODO: kontrolli kas kasutaja on sisse loginud */}
                   <Button
                     disabled={true}
                     href="/osta/${piletId}"
