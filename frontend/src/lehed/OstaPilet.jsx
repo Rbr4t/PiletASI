@@ -96,6 +96,8 @@ export default function OstaPilet() {
                     </Grid>
                   ))}
                 </List>
+
+                <Typography>Hind: 5€</Typography>
               </CardContent>
             </Card>
 
@@ -107,7 +109,6 @@ export default function OstaPilet() {
                     Külalisena
                   </Button>
 
-                  {/* TODO: kontrolli kas kasutaja on sisse loginud */}
                   <Button
                     disabled={true}
                     href="/osta/${piletId}"
