@@ -20,7 +20,6 @@ import {
   TableContainer,
   TableRow,
   Paper,
-  Switch,
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import Päis from "./komponendid/Päis";

@@ -13,6 +13,11 @@ import {
   Box,
   Typography,
   Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
 } from "@mui/material";
 
 // TODO remove, this demo shouldn't need to reset the theme.
@@ -29,8 +34,9 @@ export default function Tehing() {
       peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"],
       kuupäev: Date(),
       id: 1,
+      hind: 50,
     },
-    { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2 },
+    { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2, hind: 60 },
   ];
 
   const peatus = peatused.filter((e) => e.id == id)[0];
@@ -72,29 +78,66 @@ export default function Tehing() {
             alignItems: "stretch",
           }}
         >
-          <ListItem style={{ flex: 1 }}>
-            <Paper
-              style={{
-                padding: 5,
-                height: "100%",
-              }}
+          <List item>
+            <TableContainer
+              component={Paper}
+              style={{ padding: 5, height: "100%" }}
             >
-              {/* Content for the left box */}
-              <Grid container alignItems="center" justifyItems="center">
-                <Grid item>
-                  <Typography variant="h3">
-                    {peatus.peatused[0] +
-                      " - " +
-                      peatus.peatused[peatus.peatused.length - 1]}
-                  </Typography>
-                </Grid>
-                <Grid item>
-                  <Typography>Väljumine: {peatus.kuupäev}</Typography>
-                  <Typography>Transpordi id: {peatus.id}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          </ListItem>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell colSpan={2}>
+                      <Typography variant="h3">
+                        {peatus.peatused[0] +
+                          " - " +
+                          peatus.peatused[peatus.peatused.length - 1]}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Typography>Väljumine:</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{peatus.kuupäev.substring(0, 34)}</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Typography>Saabumine:</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>kellaaeg</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Typography>Transpordi id:</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{peatus.id}</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Typography>Hind:</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{peatus.hind}</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Typography>Kestvus:</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>X min</Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </List>
 
           <ListItem style={{ flex: 1 }}>
             <Paper style={{ padding: 5 }}>
