@@ -1,11 +1,7 @@
 /* eslint-disable react/prop-types */
 import Päis from "./komponendid/Päis";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import {
-  CenterFocusStrong,
-  Delete as DeleteIcon,
-  FourMp,
-} from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import {
   Container,
   Typography,
