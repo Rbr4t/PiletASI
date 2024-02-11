@@ -21,5 +21,25 @@ class Pilet(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     kasutaja_id = Column(Integer, ForeignKey("kasutajad.id"))
-    ostetetud = Column(DateTime(timezone=True), server_default=func.now())
+    marsruut_id = Column(Integer, ForeignKey("marsruudid.id"))
+    ostetud = Column(DateTime(timezone=True), server_default=func.now())
     kestev = Column(Integer, nullable=False)
+
+
+class Marsruut(Base):
+    __tablename__ = "marsruudid"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tüüp = Column(String, nullable=False)
+    hind = Column(Integer, nullable=False, default=0)
+    loodud = Column(DateTime(timezone=True), server_default=func.now())
+    peatused = relationship("Peatus", backref="marsruudid")
+
+
+class Peatus(Base):
+    __tablename__ = "peatused"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    marsruudi_id = Column(Integer, ForeignKey("marsruudid.id"), nullable=False)
+    peatus = Column(String, nullable=False)
+    aeg = Column(DateTime(timezone=True), nullable=False)

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Query
-from typing import List
+from fastapi import APIRouter, HTTPException
+from typing import List, Union
 from datetime import datetime
 
-from struktuurid import Pilet
+
+from struktuurid import Marsruut, Peatus
 from andmebaas import Session
+from pydantic import BaseModel
 
 API = APIRouter()
 
@@ -13,43 +15,46 @@ def index():
     return {"status": 200}
 
 
-@API.get("/genereeri/{tyyp}/{kasutaja}/")
-def read_item(
-    tyyp: str,
-    kasutaja: int,
-    q: List[str] = Query(default=[]),
-    kestev: int = 30,
-    nimi: str = ''
-):
+class PeatusStruktuur(BaseModel):
+    id: int
+    peatus: str
+    aeg: str
+
+
+class PiletRequest(BaseModel):
+    tyyp: str
+    hind: int
+    peatused: List[PeatusStruktuur]
+
+
+@API.post("/genereeri_marsruut")
+async def read_item(pilet: PiletRequest):
 
     # TODO: tuvasta kasutaja
 
-    id = 0 + 1
-    prg_kuupv = datetime.now().isoformat()
-
-    if kestev <= 0:
-        return False
+    if len(pilet.peatused) < 2:
+        raise HTTPException(status_code=400, detail="liiga vähe peatusi")
+    if any([x.aeg == "null" for x in pilet.peatused]):
+        raise HTTPException(status_code=400, detail="kuupäevad puuduvad")
 
     sihtkohad = []
-    for i in range(len(q)-1):
-        sihtkohad.append({"algus": q[i], "lõpp": q[i+1]})
+    print(pilet.peatused)
+    for i in pilet.peatused:
+        sihtkohad.append(i)
 
+    # Loob marsruudi
     with Session() as session:
-        obj = Pilet(kasutaja_id=kasutaja, kestev=kestev)
-        session.add(obj)
+        marsruut = Marsruut(tüüp=pilet.tyyp, hind=pilet.hind)
+        session.add(marsruut)
         session.commit()
 
-    return {
-        "ticket": {
-            "type": tyyp,
-            "user": nimi,
-            "routes": sihtkohad,
-        },
-        "id": id,
-        "account": kasutaja,
-        "purchased": prg_kuupv,
-        "expiry": kestev,
-    }
+        for sihtkoht in sihtkohad:
+            print(sihtkoht)
+            peatus = Peatus(marsruudi_id=marsruut.id,
+                            peatus=sihtkoht.peatus, aeg=datetime.strptime(sihtkoht.aeg, "%a, %d %b %Y %H:%M:%S %Z"))
+            session.add(peatus)
+            session.commit()
+    return {"status": 200}
 
 
 @API.get("/validate/{ref}")

@@ -23,55 +23,79 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import "dayjs/locale/et";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+// TODO: võta vahendid andmebaasist
 let transpordiVahendid = ["buss", "rong", "lennuk"];
 
 function AdminRedigeeri() {
   const defaultTheme = createTheme();
 
+  // TODO: võta andmed andmebaasist, kui on olemas
+  const [responseStatus, setResponseStatus] = useState(null);
   const [formData, setFormData] = useState({
-    transportType: "",
+    tyyp: "",
     customTransportType: "",
-    price: "",
-    stops: [{ id: 0, stop: "", timestamp: null }],
+    hind: "",
+    peatused: [{ id: 0, peatus: "", aeg: null }],
   });
+
+  const sendData = async () => {
+    console.log(formData);
+    try {
+      const response = await fetch("/api/genereeri_marsruut", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      setResponseStatus(response.status);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   const handleAddStop = () => {
     const newId =
-      formData.stops.length > 0
-        ? formData.stops[formData.stops.length - 1].id + 1
+      formData.peatused.length > 0
+        ? formData.peatused[formData.peatused.length - 1].id + 1
         : 0;
     setFormData({
       ...formData,
-      stops: [...formData.stops, { id: newId, stop: "", timestamp: null }],
+      peatused: [...formData.peatused, { id: newId, peatus: "", aeg: null }],
     });
   };
 
   const handleRemoveStop = (id) => {
     setFormData({
       ...formData,
-      stops: formData.stops.filter((stop) => stop.id !== id),
+      peatused: formData.peatused.filter((peatus) => peatus.id !== id),
     });
   };
 
   const handleStopChange = (id, field, value) => {
-    const newStops = formData.stops.map((stop) => {
-      if (stop.id === id) {
-        return { ...stop, [field]: value };
+    const newStops = formData.peatused.map((peatus) => {
+      if (peatus.id === id) {
+        return { ...peatus, [field]: value };
       }
-      return stop;
+      return peatus;
     });
     setFormData({
       ...formData,
-      stops: newStops,
+      peatused: newStops,
     });
   };
 
   const handleTransportTypeChange = (event) => {
     const value = event.target.value;
 
-    if (formData.transportType === "+") {
+    if (formData.tyyp === "+") {
       setFormData({
         ...formData,
         customTransportType: value,
@@ -79,38 +103,38 @@ function AdminRedigeeri() {
     } else {
       setFormData({
         ...formData,
-        transportType: value,
+        tyyp: value,
       });
     }
   };
 
   const handleTimestampChange = (id, value) => {
-    const newStops = formData.stops.map((stop) => {
-      if (stop.id === id) {
-        return { ...stop, timestamp: value["$d"] };
+    const newStops = formData.peatused.map((peatus) => {
+      if (peatus.id === id) {
+        return { ...peatus, aeg: value["$d"].toUTCString() };
       }
-      return stop;
+      return peatus;
     });
     setFormData({
       ...formData,
-      stops: newStops,
+      peatused: newStops,
     });
   };
 
   const handlePublish = () => {
     if (formData.customTransportType !== "") {
-      formData.transportType = formData.customTransportType;
+      formData.tyyp = formData.customTransportType;
     }
     delete formData.customTransportType;
 
     // Add your logic to publish the form data
     console.log(formData);
-
+    sendData();
     setFormData({
-      transportType: "",
+      tyyp: "",
       customTransportType: "",
-      price: "",
-      stops: [{ id: 0, stop: "", timestamp: null }],
+      hind: "",
+      peatused: [{ id: 0, peatus: "", aeg: null }],
     });
   };
 
@@ -133,7 +157,7 @@ function AdminRedigeeri() {
             <Select
               labelId="transport-type-label"
               id="transport-type"
-              value={formData.transportType}
+              value={formData.tyyp}
               onChange={handleTransportTypeChange}
               label="Type of Transportation"
             >
@@ -146,7 +170,7 @@ function AdminRedigeeri() {
               <MenuItem value="+">+</MenuItem>
             </Select>
           </FormControl>
-          {formData.transportType === "+" && (
+          {formData.tyyp === "+" && (
             <TextField
               fullWidth
               id="custom-transport-type"
@@ -157,13 +181,13 @@ function AdminRedigeeri() {
           )}
           <TextField
             fullWidth
-            id="price"
+            id="hind"
             label="Hind"
-            value={formData.price}
+            value={formData.hind}
             onChange={(e) =>
               /^-?[0-9]+(?:\.[0-9]+)?$/.test(e.target.value) ||
               e.target.value === ""
-                ? setFormData({ ...formData, price: e.target.value })
+                ? setFormData({ ...formData, hind: e.target.value })
                 : null
             }
             sx={{ marginBottom: 2 }}
@@ -172,7 +196,7 @@ function AdminRedigeeri() {
             Peatused
           </Typography>
 
-          {formData.stops.map((stop, index) => (
+          {formData.peatused.map((peatus, index) => (
             <Grid
               container
               key={index}
@@ -183,11 +207,11 @@ function AdminRedigeeri() {
               <Grid item xs={4}>
                 <TextField
                   fullWidth
-                  id={`stop-${stop.id}`}
+                  id={`peatus-${peatus.id}`}
                   label={`Peatus ${index + 1}`}
-                  value={stop.stop}
+                  value={peatus.peatus}
                   onChange={(e) =>
-                    handleStopChange(stop.id, "stop", e.target.value)
+                    handleStopChange(peatus.id, "peatus", e.target.value)
                   }
                 />
               </Grid>
@@ -203,14 +227,16 @@ function AdminRedigeeri() {
                       minutes: renderTimeViewClock,
                       seconds: renderTimeViewClock,
                     }}
-                    value={stop.timestamp}
-                    onChange={(value) => handleTimestampChange(stop.id, value)}
+                    value={peatus.aeg}
+                    onChange={(value) =>
+                      handleTimestampChange(peatus.id, value)
+                    }
                   />
                 </LocalizationProvider>
               </Grid>
 
               <Grid item alignItems="center" justifyContent="center">
-                <IconButton onClick={() => handleRemoveStop(stop.id)}>
+                <IconButton onClick={() => handleRemoveStop(peatus.id)}>
                   <DeleteIcon />
                 </IconButton>
               </Grid>
@@ -233,6 +259,7 @@ function AdminRedigeeri() {
               Lisa andmebaasi
             </Button>
           </Container>
+          {responseStatus}
         </Container>
       </ThemeProvider>
     </>
