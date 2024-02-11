@@ -1,5 +1,4 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import {
   TextField,
   Container,
@@ -11,9 +10,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Card,
+  Button,
+  IconButton,
 } from "@mui/material";
 import { useState, useEffect } from "react";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 
 import Sõit from "./komponendid/Sõit";
 import Päis from "./komponendid/Päis";
@@ -43,6 +44,7 @@ export default function VaataPileteid() {
     tüüp: "",
   });
   const [tüüp, setTüüp] = useState("");
+  const [lisaPeatused, setLisaPeatused] = useState([]);
 
   useEffect(() => {
     if (formAndmed.tüüp !== "") {
@@ -55,6 +57,10 @@ export default function VaataPileteid() {
       setPeatused(peatusedNäide.sort((date1, date2) => date1 > date2));
     }
   }, [formAndmed.tüüp]);
+
+  useEffect(() => {
+    console.log(lisaPeatused);
+  }, [lisaPeatused]);
 
   // TODO: teekonna planeerimine käib läbi serveri
 
@@ -146,6 +152,52 @@ export default function VaataPileteid() {
                       setFormAndmed({ ...formAndmed, lõpp: value })
                     }
                   />
+                </Grid>
+                <Grid item>
+                  <Grid container direction="column" justifyContent="end">
+                    {lisaPeatused.map((peatus, index) => (
+                      <Grid
+                        key={index}
+                        container
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <TextField
+                          label={`Vahepeatus: ${index + 1}`}
+                          value={lisaPeatused[index]}
+                          onChange={(e) =>
+                            setLisaPeatused(
+                              lisaPeatused.map((v, i) =>
+                                i === index ? e.target.value : v
+                              )
+                            )
+                          }
+                          margin="dense"
+                        ></TextField>
+                        <IconButton
+                          onClick={() =>
+                            setLisaPeatused(
+                              lisaPeatused.filter((v, i) => i !== index)
+                            )
+                          }
+                          alignItems="center"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
+                    ))}
+                  </Grid>
+                  <Grid
+                    container
+                    style={{ display: "flex", justifyContent: "end" }}
+                  >
+                    <Button
+                      variant="outlined"
+                      onClick={() => setLisaPeatused([...lisaPeatused, ""])}
+                    >
+                      Lisa vahepeatus
+                    </Button>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
