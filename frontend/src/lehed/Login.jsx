@@ -56,8 +56,9 @@ export default function SignIn() {
               required
               fullWidth
               id="email"
-              label="Kasutajanimi"
-              name="text"
+              label="Email"
+              name="email"
+              type="text"
               autoFocus
             />
             <TextField

@@ -38,7 +38,7 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
@@ -63,51 +63,25 @@ const calcMinutes = (datetime1, datetime2) => {
     ) / 60000
   );
 };
-let marsruudidNäide = [
-  {
-    id: 1,
-    transportType: "buss",
-    price: "50",
-    stops: [
-      {
-        id: 0,
-        stop: "Tartu",
-        timestamp: "2024-02-16T11:00:00.000Z",
-      },
-      {
-        id: 1,
-        stop: "Nõo",
-        timestamp: "2024-02-10T11:10:00.000Z",
-      },
-      {
-        id: 2,
-        stop: "Elva",
-        timestamp: "2024-02-10T11:24:00.000Z",
-      },
-    ],
-  },
-  {
-    id: 2,
-    transportType: "rong",
-    price: "60",
-    stops: [
-      {
-        id: 0,
-        stop: "Tartu",
-        timestamp: "2024-02-10T12:00:00.000Z",
-      },
-      {
-        id: 1,
-        stop: "Nõo",
-        timestamp: "2024-02-10T12:10:00.000Z",
-      },
-    ],
-  },
-];
 
 export default function IndexPage() {
+  const [marsruudid, setMarsruudid] = useState([]);
+
+  useEffect(() => {
+    async function fetchMarsruudid() {
+      try {
+        const response = await fetch("/api/saa_marsruudid"); // Adjust URL as needed
+        const data = await response.json();
+        setMarsruudid(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchMarsruudid();
+  }, []);
+
   const [expanded, setExpanded] = useState([]);
-  const [marsruudid, setMarsruudid] = useState(marsruudidNäide);
 
   const handleExpandClick = (index) => {
     const newExpanded = [...expanded];
@@ -116,7 +90,18 @@ export default function IndexPage() {
   };
 
   const deleteMarsruut = (id) => {
-    setMarsruudid(marsruudid.filter((e) => e.id != id));
+    async function kustutaMarsruut() {
+      try {
+        const response = await fetch(`/api/kustuta_marsruut/${id}`); // Adjust URL as needed
+        const data = await response.json();
+        setMarsruudid(data);
+        setMarsruudid(marsruudid.filter((e) => e.id != id));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    kustutaMarsruut();
   };
 
   return (
@@ -155,6 +140,7 @@ export default function IndexPage() {
                 <List item style={{ display: "flex" }}>
                   <ListItem>
                     <IconButton
+                      disabled
                       aria-label="edit"
                       href={`/admin/${marsruut.id}`}
                     >

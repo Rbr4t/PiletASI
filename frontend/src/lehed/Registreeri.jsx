@@ -18,8 +18,10 @@ export default function SignUp() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     console.log({
+      eesnimi: data.get("firstName"),
+      perekonnanimi: data.get("lastName"),
       email: data.get("email"),
-      password: data.get("password"),
+      parool: data.get("password"),
     });
   };
 

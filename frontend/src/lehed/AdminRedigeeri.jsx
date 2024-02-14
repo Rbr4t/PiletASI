@@ -22,23 +22,56 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import "dayjs/locale/et";
+import dayjs from "dayjs";
 
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 // TODO: võta vahendid andmebaasist
 let transpordiVahendid = ["buss", "rong", "lennuk"];
 
 function AdminRedigeeri() {
   const defaultTheme = createTheme();
+  const { id } = useParams();
+
+  const [formData, setFormData] = useState({
+    transportType: "",
+    customTransportType: "",
+    price: "",
+    stops: [{ id: 0, stop: "", timestamp: null }],
+  });
+
+  useEffect(() => {
+    async function fetchMarsruudid() {
+      try {
+        const response = await fetch(`/api/saa_marsruut/${id}`); // Adjust URL as needed
+        const data = await response.json();
+        console.log(data);
+        let stops = [];
+
+        stops.push({
+          id: data.stops.id,
+          stop: data.stops.stop,
+          timestamp: new Date(data.stops.timestamp),
+        });
+
+        setFormData({
+          transportType: data.transportType,
+          price: data.price,
+          stops: stops,
+          customTransportType: "",
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+    if (id !== "uus") {
+      fetchMarsruudid();
+    }
+  }, []);
 
   // TODO: võta andmed andmebaasist, kui on olemas
   const [responseStatus, setResponseStatus] = useState(null);
-  const [formData, setFormData] = useState({
-    tyyp: "",
-    customTransportType: "",
-    hind: "",
-    peatused: [{ id: 0, peatus: "", aeg: null }],
-  });
 
   const sendData = async () => {
     console.log(formData);
@@ -63,24 +96,24 @@ function AdminRedigeeri() {
 
   const handleAddStop = () => {
     const newId =
-      formData.peatused.length > 0
-        ? formData.peatused[formData.peatused.length - 1].id + 1
+      formData.stops.length > 0
+        ? formData.stops[formData.stops.length - 1].id + 1
         : 0;
     setFormData({
       ...formData,
-      peatused: [...formData.peatused, { id: newId, peatus: "", aeg: null }],
+      stops: [...formData.stops, { id: newId, stop: "", timestamp: null }],
     });
   };
 
   const handleRemoveStop = (id) => {
     setFormData({
       ...formData,
-      peatused: formData.peatused.filter((peatus) => peatus.id !== id),
+      stops: formData.stops.filter((peatus) => peatus.id !== id),
     });
   };
 
   const handleStopChange = (id, field, value) => {
-    const newStops = formData.peatused.map((peatus) => {
+    const newStops = formData.stops.map((peatus) => {
       if (peatus.id === id) {
         return { ...peatus, [field]: value };
       }
@@ -88,14 +121,14 @@ function AdminRedigeeri() {
     });
     setFormData({
       ...formData,
-      peatused: newStops,
+      stops: newStops,
     });
   };
 
   const handleTransportTypeChange = (event) => {
     const value = event.target.value;
 
-    if (formData.tyyp === "+") {
+    if (formData.transportType === "+") {
       setFormData({
         ...formData,
         customTransportType: value,
@@ -103,27 +136,27 @@ function AdminRedigeeri() {
     } else {
       setFormData({
         ...formData,
-        tyyp: value,
+        transportType: value,
       });
     }
   };
 
   const handleTimestampChange = (id, value) => {
-    const newStops = formData.peatused.map((peatus) => {
+    const newStops = formData.stops.map((peatus) => {
       if (peatus.id === id) {
-        return { ...peatus, aeg: value["$d"].toUTCString() };
+        return { ...peatus, timestamp: value["$d"].toUTCString() };
       }
       return peatus;
     });
     setFormData({
       ...formData,
-      peatused: newStops,
+      stops: newStops,
     });
   };
 
   const handlePublish = () => {
     if (formData.customTransportType !== "") {
-      formData.tyyp = formData.customTransportType;
+      formData.transportType = formData.customTransportType;
     }
     delete formData.customTransportType;
 
@@ -131,10 +164,10 @@ function AdminRedigeeri() {
     console.log(formData);
     sendData();
     setFormData({
-      tyyp: "",
+      transportType: "",
       customTransportType: "",
-      hind: "",
-      peatused: [{ id: 0, peatus: "", aeg: null }],
+      price: "",
+      stops: [{ id: 0, stop: "", timestamp: null }],
     });
   };
 
@@ -157,7 +190,7 @@ function AdminRedigeeri() {
             <Select
               labelId="transport-type-label"
               id="transport-type"
-              value={formData.tyyp}
+              value={formData.transportType}
               onChange={handleTransportTypeChange}
               label="Type of Transportation"
             >
@@ -170,7 +203,7 @@ function AdminRedigeeri() {
               <MenuItem value="+">+</MenuItem>
             </Select>
           </FormControl>
-          {formData.tyyp === "+" && (
+          {formData.transportType === "+" && (
             <TextField
               fullWidth
               id="custom-transport-type"
@@ -181,13 +214,13 @@ function AdminRedigeeri() {
           )}
           <TextField
             fullWidth
-            id="hind"
+            id="price"
             label="Hind"
-            value={formData.hind}
+            value={formData.price}
             onChange={(e) =>
               /^-?[0-9]+(?:\.[0-9]+)?$/.test(e.target.value) ||
               e.target.value === ""
-                ? setFormData({ ...formData, hind: e.target.value })
+                ? setFormData({ ...formData, price: e.target.value })
                 : null
             }
             sx={{ marginBottom: 2 }}
@@ -196,7 +229,7 @@ function AdminRedigeeri() {
             Peatused
           </Typography>
 
-          {formData.peatused.map((peatus, index) => (
+          {formData.stops.map((peatus, index) => (
             <Grid
               container
               key={index}
@@ -227,7 +260,7 @@ function AdminRedigeeri() {
                       minutes: renderTimeViewClock,
                       seconds: renderTimeViewClock,
                     }}
-                    value={peatus.aeg}
+                    value={dayjs(peatus.timestamp)}
                     onChange={(value) =>
                       handleTimestampChange(peatus.id, value)
                     }
