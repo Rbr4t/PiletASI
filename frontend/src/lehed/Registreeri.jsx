@@ -17,12 +17,33 @@ export default function SignUp() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
+    const formData = {
       eesnimi: data.get("firstName"),
       perekonnanimi: data.get("lastName"),
       email: data.get("email"),
       parool: data.get("password"),
-    });
+    };
+    console.log(formData);
+
+    const sendReg = async () => {
+      try {
+        const response = await fetch("/auth/registreeri", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: formData,
+        });
+        console.log(response);
+        if (!response.ok) {
+          console.log(response);
+          throw new Error("Network response was not ok");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+    sendReg();
   };
 
   return (
@@ -55,6 +76,7 @@ export default function SignUp() {
                 <TextField
                   autoComplete="given-name"
                   name="firstName"
+                  type="text"
                   required
                   fullWidth
                   id="firstName"
@@ -69,6 +91,7 @@ export default function SignUp() {
                   id="lastName"
                   label="Perekonnanimi"
                   name="lastName"
+                  type="text"
                   autoComplete="family-name"
                 />
               </Grid>
@@ -79,6 +102,7 @@ export default function SignUp() {
                   id="email"
                   label="E-mail"
                   name="email"
+                  type="email"
                   autoComplete="email"
                 />
               </Grid>

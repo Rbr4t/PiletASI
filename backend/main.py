@@ -7,8 +7,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 
 from api import API
+from login import auth
 from andmebaas import engine, Base
-
+import logging
+logging.getLogger('passlib').setLevel(logging.ERROR)
 
 if not os.path.isfile("./../tickets.db"):
     Base.metadata.create_all(bind=engine)
@@ -28,6 +30,7 @@ templates = Jinja2Templates(directory="../frontend/dist")
 # )
 
 app.include_router(API, prefix='/api')
+app.include_router(auth, prefix="/auth")
 
 
 # Jinja2 mallimootoriga Reacti lehele suunamine

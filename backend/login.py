@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException
 from typing import Annotated
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -25,23 +25,22 @@ def index():
     return {"status": 200}
 
 
+class RegistreeriStruct(BaseModel):
+    eesnimi: str
+    perekonnanimi: str
+    email: str
+    parool: str
+
+
 @auth.post("/registreeri")
-def register(
-    kasutajanimi: Annotated[str, Form()],
-    parool: Annotated[str, Form()],
-    email: Annotated[str, Form()],
-    nimi: Annotated[str, Form()]
-):
-    """
-    I'll be using FormData instead of regular post request,
-    so that you can send credentials safely to the server as one package
-    + this way we can make it through native html <form> element
-    """
-    if any([kasutajanimi, parool, email, nimi]) is None:
-        return {"status": 403}
+def register(andmed: RegistreeriStruct):
+    print("here")
+
+    if "" in [andmed.eesnimi, andmed.parool, andmed.email, andmed.perekonnanimi]:
+        raise HTTPException(status_code=403, detail="Vigased andmed")
     with Session() as session:
-        obj = Kasutaja(kasutajanimi=kasutajanimi, nimi=nimi,
-                       email=email, hashed_parool=saa_parooli_hash(parool))
+        obj = Kasutaja(nimi=f"{andmed.eesnimi} {andmed.perekonnanimi}",
+                       email=andmed.email, hashed_parool=saa_parooli_hash(andmed.parool))
         session.add(obj)
         session.commit()
 
@@ -51,21 +50,28 @@ def register(
 
 
 class LoginCredentials(BaseModel):
-    kasutajanimi: str
-    hashed_parool: str
+    email: str
+    parool: str
 
 
 @auth.post("/login")
 def login(credentials: LoginCredentials):
     session = Session()
-    user = select(Kasutaja).where(
-        Kasutaja.username == credentials.kasutajanimi)
-    if user == -1:
-        return {"status": 401}
-    if verifeeri_parool(credentials.hashed_password, user.hashed_password):
-        return {"status": 401}
+    with Session() as session:
+
+        user = session.query(Kasutaja).filter(
+            Kasutaja.email == credentials.email).first()
+
+        if user is None:
+            raise HTTPException(
+                status_code=401, detail="Vale parool või email")
+            return {"status": 401}
+
+        elif verifeeri_parool(credentials.parool, user.hashed_parool):
+            return {"status": 200}
 
     # TODO: generate a token and add it to the session with expiration
     # TODO: proceed to the admin page or whatever
-
-    return {"status": 200}
+    raise HTTPException(
+        status_code=401, detail="Vale parool või email")
+    return {"status": 401}

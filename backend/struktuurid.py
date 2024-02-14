@@ -8,7 +8,6 @@ class Kasutaja(Base):
     __tablename__ = "kasutajad"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    kasutajanimi = Column(String, unique=True, nullable=False)
     nimi = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
     hashed_parool = Column(String, nullable=False)
