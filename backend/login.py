@@ -33,16 +33,20 @@ class RegistreeriStruct(BaseModel):
 
 
 @auth.post("/registreeri")
-def register(andmed: RegistreeriStruct):
+async def register(andmed: RegistreeriStruct):
     print("here")
 
     if "" in [andmed.eesnimi, andmed.parool, andmed.email, andmed.perekonnanimi]:
         raise HTTPException(status_code=403, detail="Vigased andmed")
-    with Session() as session:
-        obj = Kasutaja(nimi=f"{andmed.eesnimi} {andmed.perekonnanimi}",
-                       email=andmed.email, hashed_parool=saa_parooli_hash(andmed.parool))
-        session.add(obj)
-        session.commit()
+    try:
+        with Session() as session:
+            obj = Kasutaja(nimi=f"{andmed.eesnimi} {andmed.perekonnanimi}",
+                           email=andmed.email, hashed_parool=saa_parooli_hash(andmed.parool))
+            session.add(obj)
+            session.commit()
+    except:
+        raise HTTPException(
+            status_code=403, detail="Selline kasutaja juba eksisteerib, logi sisse")
 
     # TODO: redirecti kasutaja tagasi
 
@@ -55,7 +59,7 @@ class LoginCredentials(BaseModel):
 
 
 @auth.post("/login")
-def login(credentials: LoginCredentials):
+async def login(credentials: LoginCredentials):
     session = Session()
     with Session() as session:
 

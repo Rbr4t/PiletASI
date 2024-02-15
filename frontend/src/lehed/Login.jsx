@@ -13,6 +13,7 @@ import {
   Typography,
   Container,
 } from "@mui/material";
+import {} from "react-router-dom";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
@@ -21,10 +22,32 @@ export default function SignIn() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
+    const formData = {
       email: data.get("email"),
-      password: data.get("password"),
-    });
+      parool: data.get("parool"),
+    };
+    const sendReg = async () => {
+      try {
+        const response = await fetch("/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          console.log(response);
+          console.log("here");
+          window.location.href = "/";
+        } else {
+          throw new Error("Network response was not ok");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+    sendReg();
   };
 
   return (
@@ -65,7 +88,7 @@ export default function SignIn() {
               margin="normal"
               required
               fullWidth
-              name="password"
+              name="parool"
               label="Parool"
               type="password"
               id="password"

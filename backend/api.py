@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from typing import List, Union
+from typing import List, Union, Optional
 from datetime import datetime
+from sqlalchemy import and_
 
-
-from struktuurid import Marsruut, Peatus
+from struktuurid import Marsruut, Peatus, Pilet
 from andmebaas import Session
 from pydantic import BaseModel
 
@@ -115,6 +115,25 @@ def marsruudid():
     return result
 
 
+def päri_marsruudid(tüüp, algus, sihtkoht):
+    with Session() as session:
+        query = session.query(Marsruut)
+        # TODO: vahepeatuste arvestamine
+
+        query = query.filter(
+            and_(Marsruut.peatused.any(Peatus.peatus == algus), Marsruut.peatused.any(Peatus.peatus == sihtkoht)))
+
+        return query.all()
+
+
+@API.get("/leia_piletid/{tyyp}/{algus}/{sihtkoht}")
+def piletid(tyyp: str, algus: str, sihtkoht: str):
+    print(tyyp)
+    kõik_piletid = päri_marsruudid(tyyp, algus, sihtkoht)
+    print("here")
+    return {"marsruudid": kõik_piletid}
+
+
 @API.get("/kustuta_marsruut/{id}")
 def kustuta(id: int):
     try:
@@ -128,9 +147,13 @@ def kustuta(id: int):
     return {"status": 200}
 
 
-@API.get("/validate/{ref}")
+@API.get("/valideeri/{ref}")
 def validate(ref: str):
-
     # TODO: valideeri kasutaja andmebaasi päringuga
 
-    return {"status": 401}
+    try:
+        with Session() as session:
+            query = session.query(Pilet).filter(Pilet.id == id).first()
+            return {"status": 200}
+    except:
+        raise HTTPException(status_code=400, detail="selline kirje puudub")

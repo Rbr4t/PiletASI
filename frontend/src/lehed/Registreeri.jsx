@@ -32,7 +32,7 @@ export default function SignUp() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: formData,
+          body: JSON.stringify(formData),
         });
         console.log(response);
         if (!response.ok) {
