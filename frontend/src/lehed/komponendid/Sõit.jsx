@@ -38,6 +38,7 @@ export default function Sõit({ liinid }) {
     newExpanded[index] = !newExpanded[index];
     setExpanded(newExpanded);
   };
+  console.log(liinid);
 
   return (
     <List
@@ -60,13 +61,15 @@ export default function Sõit({ liinid }) {
                 }}
               >
                 <DirectionsBusIcon />
-                <Typography>5€</Typography>
+                <Typography>{liin.price}</Typography>
               </Container>
             }
             title={
-              liin.peatused[0] + " - " + liin.peatused[liin.peatused.length - 1]
+              liin.stops[0].stop +
+              " - " +
+              liin.stops[liin.stops.length - 1].stop
             }
-            subheader={liin.kuupäev}
+            subheader={liin.timestamp}
           />
 
           <CardActions disableSpacing>
@@ -87,9 +90,9 @@ export default function Sõit({ liinid }) {
             <CardContent>
               <Typography paragraph>Peatused</Typography>
               <List>
-                {liin.peatused.map((d, index) => (
+                {liin.stops.map((d, index) => (
                   <ListItem key={index}>
-                    <ListItemText primary={`${d}`} secondary={`kellaaeg`} />
+                    <ListItemText primary={d.stop} secondary={d.timestamp} />
                   </ListItem>
                 ))}
               </List>

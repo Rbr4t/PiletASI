@@ -32,13 +32,20 @@ class Marsruut(Base):
     tüüp = Column(String, nullable=False)
     hind = Column(Integer, nullable=False, default=0)
     loodud = Column(DateTime(timezone=True), server_default=func.now())
-    peatused = relationship("Peatus", backref="marsruudid")
+    peatused = relationship("MarsruudidPeatused", backref="marsruudid")
 
 
 class Peatus(Base):
     __tablename__ = "peatused"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    marsruudi_id = Column(Integer, ForeignKey("marsruudid.id"), nullable=False)
     peatus = Column(String, nullable=False)
+
+
+class MarsruudidPeatused(Base):
+    __tablename__ = "marsruudid_peatused"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    marsruut_id = Column(Integer, ForeignKey("marsruudid.id"))
+    peatus_id = Column(Integer, ForeignKey("peatused.id"))
     aeg = Column(DateTime(timezone=True), nullable=False)

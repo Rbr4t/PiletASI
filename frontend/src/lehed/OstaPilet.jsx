@@ -11,37 +11,40 @@ import {
   CardContent,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+
+async function getPeatused(id) {
+  try {
+    const response = await fetch(`/api/saa_marsruut/${id}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    return null; // Return null if there's an error
+  }
+}
 
 export default function OstaPilet() {
   const { piletId } = useParams();
+  const [peatus, setPeatus] = useState(null);
   const defaultTheme = createTheme();
-  const [kood, setKood] = useState("");
-  const [andmed, setAndmed] = useState(null);
-  const [error, setError] = useState(null);
 
-  // TODO: mingi api call serverile, et saada info pileti ID kaudu peatustest jms
-  const peatused = [
-    {
-      peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"],
-      kuupäev: Date(),
-      id: 1,
-    },
-    { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2 },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getPeatused(piletId);
+      setPeatus(data);
+    };
 
-  const peatus = peatused.filter((e) => e.id == piletId)[0];
-  console.log(peatus);
+    fetchData();
+  }, [piletId]); // Include piletId in the dependency array
 
-  const handleChange = (event) => {
-    setKood(event.target.value);
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // fetchData();
-  };
+  if (!peatus) {
+    // Loading state or error state
+    return <div>Loading...</div>; // You can improve this to show a loading spinner or error message
+  }
 
   return (
     <>
@@ -61,16 +64,16 @@ export default function OstaPilet() {
         >
           <Grid alignItems="center" justifyContent="center">
             <Typography variant="h1">
-              {peatus.peatused[0] +
-                " - " +
-                peatus.peatused[peatus.peatused.length - 1]}{" "}
+              {peatus.stops.length > 0 &&
+                peatus.stops[0].stop +
+                  " - " +
+                  peatus.stops[peatus.stops.length - 1].stop}
             </Typography>
 
             <Card>
               <CardContent>
-                
                 <List>
-                  {peatus.peatused.map((d, index) => (
+                  {peatus.stops.map((d, index) => (
                     <Grid container justifyContent="space-around" key={index}>
                       <Grid
                         container
@@ -80,7 +83,7 @@ export default function OstaPilet() {
                         justifyContent="s"
                         alignItems="start"
                       >
-                        <Typography variant="h5">{d}</Typography>
+                        <Typography variant="h5">{d.stop}</Typography>
                       </Grid>
                       <Grid
                         container
@@ -91,13 +94,13 @@ export default function OstaPilet() {
                         justifyContent="center"
                         paddingRight={5}
                       >
-                        <Typography>kellaeg</Typography>
+                        <Typography>{d.timestamp}</Typography>
                       </Grid>
                     </Grid>
                   ))}
                 </List>
 
-                <Typography>Hind: 5€</Typography>
+                <Typography>Hind: {peatus.price}€</Typography>
               </CardContent>
             </Card>
 
@@ -111,7 +114,7 @@ export default function OstaPilet() {
 
                   <Button
                     disabled={true}
-                    href="/osta/${piletId}"
+                    href={`/osta/${piletId}`}
                     variant="contained"
                   >
                     Kasutajana

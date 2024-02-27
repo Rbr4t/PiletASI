@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Päis from "./komponendid/Päis";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   Paper,
@@ -19,50 +19,74 @@ import {
   TableContainer,
   TableRow,
 } from "@mui/material";
+import dayjs from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 // TODO: olenevalt kas on sisse loginud kasutaja või mitte, siis täida osad väljad juba ära (nimi, email, credit card jne)
+async function getPeatused(id) {
+  try {
+    const response = await fetch(`/api/saa_marsruut/${id}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log(response);
+    return response.json();
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
 export default function Tehing() {
   const { id } = useParams();
-
-  // TODO: mingi api call serverile, et saada info pileti ID kaudu peatustest jms
-  const peatused = [
-    {
-      peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"],
-      kuupäev: Date(),
-      id: 1,
-      hind: 50,
-    },
-    { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2, hind: 60 },
-  ];
-
-  const peatus = peatused.filter((e) => e.id == id)[0];
-  console.log(id);
-
+  const [peatus, setPeatus] = useState(null);
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
     cardNumber: "",
     cardHolder: "",
-    expiryDate: "",
+    expiryDate: dayjs(new Date().setFullYear(new Date().getFullYear() + 2)),
     cvv: "",
   });
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getPeatused(id);
+      setPeatus(data);
+      console.log(data);
+    };
+
+    fetchData();
+  }, []);
+
+  if (!peatus) {
+    // Loading state or error state
+    return <div>Loading...</div>; // You can improve this to show a loading spinner or error message
+  }
+
   const handleChange = (e) => {
+    console.log(e);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
+  const handleExpiryChange = (newDate) => {
+    setFormData({
+      ...formData,
+      expiryDate: newDate,
+    });
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
+    console.log(formData);
   };
 
   return (
@@ -88,9 +112,9 @@ export default function Tehing() {
                   <TableRow>
                     <TableCell colSpan={2}>
                       <Typography variant="h3">
-                        {peatus.peatused[0] +
+                        {peatus.stops[0].stop +
                           " - " +
-                          peatus.peatused[peatus.peatused.length - 1]}
+                          peatus.stops[peatus.stops.length - 1].stop}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -99,7 +123,9 @@ export default function Tehing() {
                       <Typography>Väljumine:</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>{peatus.kuupäev.substring(0, 34)}</Typography>
+                      <Typography>
+                        {peatus.stops[0].timestamp.substring(0, 34)}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -107,12 +133,16 @@ export default function Tehing() {
                       <Typography>Saabumine:</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>kellaaeg</Typography>
+                      <Typography>
+                        {peatus.stops[
+                          peatus.stops.length - 1
+                        ].timestamp.substring(0, 34)}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
-                      <Typography>Transpordi id:</Typography>
+                      <Typography>Transpordi id: </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography>{peatus.id}</Typography>
@@ -123,7 +153,7 @@ export default function Tehing() {
                       <Typography>Hind:</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>{peatus.hind}</Typography>
+                      <Typography>{peatus.price}</Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -157,6 +187,8 @@ export default function Tehing() {
                       id="firstName"
                       label="Eesnimi"
                       autoFocus
+                      value={formData.firstName}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -167,6 +199,8 @@ export default function Tehing() {
                       label="Perekonnanimi"
                       name="lastName"
                       autoComplete="family-name"
+                      value={formData.lastName}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -177,13 +211,16 @@ export default function Tehing() {
                       label="E-mail"
                       name="email"
                       autoComplete="email"
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
+                      id="cardNumber"
                       label="Kaardi number"
-                      name="kaartNum"
+                      name="cardNumber"
                       variant="outlined"
                       value={formData.cardNumber}
                       onChange={handleChange}
@@ -192,27 +229,28 @@ export default function Tehing() {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
+                      id="cardHolder"
                       label="Kaardi Omanik"
-                      name="omanik"
+                      name="cardHolder"
                       variant="outlined"
                       value={formData.cardHolder}
                       onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Kestev kuni"
-                      name="kestevKuni"
-                      variant="outlined"
-                      value={formData.expiryDate}
-                      onChange={handleChange}
-                    />
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        label="Kestev kuni"
+                        value={formData.expiryDate}
+                        onChange={(newDate) => handleExpiryChange(newDate)}
+                      />
+                    </LocalizationProvider>
                   </Grid>
                   <Grid item xs={6}>
                     <TextField
                       fullWidth
                       label="CVV"
+                      id="cvv"
                       name="cvv"
                       variant="outlined"
                       value={formData.cvv}

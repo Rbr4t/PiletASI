@@ -22,47 +22,71 @@ import Päis from "./komponendid/Päis";
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
-let algusKohad = ["Nõo", "Tartu"];
-let loppKohad = ["Nõo", "Tartu"];
-let piletTüübid = ["buss", "rong", "rakett"];
+const getParameetrid = async () => {
+  try {
+    const response = await fetch("/api/saa_parameetrid");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
 
-const peatusedNäide = [
-  {
-    peatused: ["Tartu", "Teaduspark", "Nõo", "Elva"],
-    kuupäev: Date(),
-    id: 1,
-    tüüp: "buss",
-  },
-  { peatused: ["Elva", "Nõo", "Tartu"], kuupäev: Date(), id: 2, tüüp: "rong" },
-];
+    return [data.peatused, data.pilettypes];
+  } catch (error) {
+    console.error("Error:", error);
+    // Handle error appropriately, e.g., show a message to the user
+  }
+};
+
+const getPeatusedKõik = async () => {
+  try {
+    const response = await fetch("/api/saa_marsruudid");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log(response);
+    return response.json();
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
 export default function VaataPileteid() {
-  const [peatused, setPeatused] = useState(peatusedNäide);
+  const [peatused, setPeatused] = useState([]);
+  const [piletiTüübid, setPiletiTüübid] = useState([]);
+  const [piletiKohad, setPiletiKohad] = useState([]);
+  const [piletTypeSearch, setPiletTypeSearch] = useState("");
+
   const [formAndmed, setFormAndmed] = useState({
     algus: null,
     lõpp: null,
     tüüp: "",
+    lisaPeatused: [],
   });
-  const [tüüp, setTüüp] = useState("");
   const [lisaPeatused, setLisaPeatused] = useState([]);
 
   useEffect(() => {
-    if (formAndmed.tüüp !== "") {
-      setPeatused(
-        peatusedNäide
-          .filter((e) => e.tüüp === formAndmed.tüüp)
-          .sort((date1, date2) => date1 > date2)
-      );
-    } else {
-      setPeatused(peatusedNäide.sort((date1, date2) => date1 > date2));
-    }
-  }, [formAndmed.tüüp]);
+    const fetchData = async () => {
+      const inf = await getParameetrid();
+      setPiletiTüübid(inf[1]);
+      setPiletiKohad(inf[0]);
+
+      const peatusedKõik = await getPeatusedKõik();
+      console.log(peatusedKõik);
+      setPeatused(peatusedKõik);
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     console.log(lisaPeatused);
+    setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
   }, [lisaPeatused]);
 
-  // TODO: teekonna planeerimine käib läbi serveri
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(formAndmed);
+  };
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -87,6 +111,7 @@ export default function VaataPileteid() {
             justifyContent: "center",
             alignItems: "center",
           }}
+          onSubmit={handleSubmit}
         >
           <Grid container spacing={2}>
             <Grid item xs={12} md="auto">
@@ -104,10 +129,10 @@ export default function VaataPileteid() {
                       sx={{ width: 300 }}
                       labelId="demo-simple-select-standard-label"
                       id="demo-simple-select-standard"
-                      value={tüüp}
+                      value={piletTypeSearch}
                       label="Tüüp"
                       onChange={(e) => {
-                        setTüüp(e.target.value);
+                        setPiletTypeSearch(e.target.value);
                         setFormAndmed({
                           ...formAndmed,
                           tüüp: e.target.value,
@@ -117,7 +142,7 @@ export default function VaataPileteid() {
                       <MenuItem value="">
                         <em>vali</em>
                       </MenuItem>
-                      {piletTüübid.map((v, index) => (
+                      {piletiTüübid.map((v, index) => (
                         <MenuItem key={index} value={v}>
                           {v}
                         </MenuItem>
@@ -129,7 +154,7 @@ export default function VaataPileteid() {
                   <Autocomplete
                     disablePortal
                     id="algus"
-                    options={algusKohad}
+                    options={piletiKohad}
                     sx={{ width: 300 }}
                     renderInput={(params) => (
                       <TextField {...params} label="Alguskoht" />
@@ -143,7 +168,7 @@ export default function VaataPileteid() {
                   <Autocomplete
                     disablePortal
                     id="lopp"
-                    options={loppKohad}
+                    options={piletiKohad}
                     sx={{ width: 300 }}
                     renderInput={(params) => (
                       <TextField {...params} label="Sihtkoht" />
@@ -198,6 +223,9 @@ export default function VaataPileteid() {
                       Lisa vahepeatus
                     </Button>
                   </Grid>
+                  <Button variant="contained" type="submit">
+                    Otsi
+                  </Button>
                 </Grid>
               </Grid>
             </Grid>
