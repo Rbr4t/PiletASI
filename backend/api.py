@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Union, Optional, Annotated
 from datetime import datetime
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, asc
 
 from struktuurid import Marsruut, Peatus, Pilet, MarsruudidPeatused
 from andmebaas import Session
@@ -152,45 +152,77 @@ def marsruudid():
 def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
     # TODO: fix this piece of shit
     result = []
+
     with Session() as session:
 
         peatus1 = session.query(Peatus).filter(
             Peatus.peatus == algus).first().id
         peatus2 = session.query(Peatus).filter(
             Peatus.peatus == sihtkoht).first().id
-        vahepeatused = [session.query(Peatus).filter(
-            Peatus.peatus == x).first().id for x in vahepeatused]
-        print(peatus1, peatus2, vahepeatused)
+        if vahepeatused is not None:
+            vahepeatused = [session.query(Peatus).filter(
+                Peatus.peatus == x).first().id for x in vahepeatused]
+        # print(peatus1, peatus2, vahepeatused)
 
         all_queries = []
 
-        if len(vahepeatused) == 0:
-            all_queries = session.query(MarsruudidPeatused).filter(or_(
-                MarsruudidPeatused.peatus_id == peatus1,
-                MarsruudidPeatused.peatus_id == peatus2)).all()
-        else:
+        if vahepeatused is not None:
             routes = [[peatus1, vahepeatused[0]],
                       [vahepeatused[-1], peatus2]]
             for x in range(len(vahepeatused)-1):
                 routes.insert(1, [vahepeatused[x], vahepeatused[x+1]])
-            print(routes)
+        else:
+            routes = [[peatus1, peatus2]]
+        # print(routes)
 
+        ids = set()
+        for route in routes:
+            start = route[0]
+            end = route[1]
+
+            query1 = session.query(MarsruudidPeatused).filter(
+                MarsruudidPeatused.peatus_id == start).all()
+            query2 = session.query(MarsruudidPeatused).filter(
+                MarsruudidPeatused.peatus_id == end).all()
+            query3 = [x.marsruut_id for x in query1] + \
+                [x.marsruut_id for x in query2]
+            # print(query3)
+            s = set(filter(lambda x: query3.count(x) > 1, query3))
+            for x in s:
+                ids.add(x)
+        query = session.query(MarsruudidPeatused).filter(
+            MarsruudidPeatused.marsruut_id.in_(list(ids))).all()
+        all_queries.append(query)
+
+        # print(all_queries)
         marsruudid = {}
 
-        for q in all_queries:
-            print(q)
-            if marsruudid.get(q.marsruut_id) is None:
-                marsruudid[q.marsruut_id] = [q.peatus_id]
-            else:
-                marsruudid[q.marsruut_id] += [q.peatus_id]
-            print(marsruudid)
+        for query in all_queries:
+            for q in query:
+                # print(q.id)
+
+                if marsruudid.get(q.marsruut_id) is None:
+                    marsruudid[q.marsruut_id] = [q.peatus_id]
+                else:
+                    marsruudid[q.marsruut_id] += [q.peatus_id]
+        print(all_queries)
 
         sobivad_marsruudid = []
 
-        for key, value in list(marsruudid.items()):
-            if len(marsruudid[key]) >= 2 and marsruudid[key].index(peatus1) < marsruudid[key].index(peatus2):
-                sobivad_marsruudid.append(key)
+        # print(routes)
+        for route in routes:
 
+            start = route[0]
+            end = route[1]
+            # print(start, end)
+
+            for marsruut_id, values in list(marsruudid.items()):
+                if end in values and start in values and values.index(start) < values.index(end):
+                    # print("SIIN: ")
+                    # print(marsruut_id, values)
+                    sobivad_marsruudid.append(marsruut_id)
+
+        # print(sobivad_marsruudid)
         leitud_marsruudid = session.query(Marsruut).filter(
             Marsruut.id.in_(sobivad_marsruudid), Marsruut.tüüp == tüüp).all()
 
@@ -215,8 +247,17 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                 "price": marsruut.hind,
                 "stops": stops
             })
+
+    print(marsruudid)
+    print(routes)
+
+    print(sobivad_marsruudid)
+
+    def custom_sort(item):
+        return sobivad_marsruudid.index(item['id'])
     # raise HTTPException(status_code=400, detail="väljad vigased")
-    return result
+    print(result)
+    return sorted(result, key=custom_sort)
 
 
 @API.get("/leia_piletid/{tyyp}/{algus}/{sihtkoht}")
