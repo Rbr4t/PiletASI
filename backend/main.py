@@ -17,17 +17,10 @@ if not os.path.isfile("./../tickets.db"):
 
 app = FastAPI()
 
+
 app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"),
           name="assets")
 templates = Jinja2Templates(directory="../frontend/dist")
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 
 app.include_router(API, prefix='/api')
 app.include_router(auth, prefix="/auth")

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Union, Optional, Annotated
+from typing import List
 from datetime import datetime
-from sqlalchemy import and_, or_, asc
 
 from struktuurid import Marsruut, Peatus, Pilet, MarsruudidPeatused
 from andmebaas import Session
@@ -28,11 +27,12 @@ class PiletRequest(BaseModel):
 
 
 # genereerib ja kustutab vajadusel marsruute
-# TODO: kasutada PUT http route-i marsruutide muutmiseks
+
+# TODO: tuvasta kasutaja
+
 @API.post("/genereeri_marsruut")
 async def read_item(pilet: PiletRequest):
     print(pilet)
-    # TODO: tuvasta kasutaja
 
     if len(pilet.stops) < 2:
         raise HTTPException(status_code=400, detail="liiga vähe peatusi")
@@ -77,6 +77,21 @@ async def read_item(pilet: PiletRequest):
 
                 session.commit()
 
+    return {"status": 200}
+
+
+@API.get("/kustuta_marsruut/{id}")
+def kustuta(id: int):
+    try:
+        with Session() as session:
+            print(x.id for x in session.query(
+                Marsruut).filter(Marsruut.id == id))
+            session.query(Marsruut).filter(Marsruut.id == id).delete()
+            session.query(MarsruudidPeatused).filter(
+                MarsruudidPeatused.marsruut_id == id).delete(synchronize_session=False)
+            session.commit()
+    except:
+        raise HTTPException(status_code=400, detail="selline kirje puudub")
     return {"status": 200}
 
 
@@ -150,8 +165,6 @@ def marsruudid():
 
 
 def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
-    # TODO: fix this piece of shit
-    result = []
 
     with Session() as session:
 
@@ -173,7 +186,6 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                 routes.insert(1, [vahepeatused[x], vahepeatused[x+1]])
         else:
             routes = [[peatus1, peatus2]]
-        # print(routes)
 
         ids = set()
         for route in routes:
@@ -186,7 +198,6 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                 MarsruudidPeatused.peatus_id == end).all()
             query3 = [x.marsruut_id for x in query1] + \
                 [x.marsruut_id for x in query2]
-            # print(query3)
             s = set(filter(lambda x: query3.count(x) > 1, query3))
             for x in s:
                 ids.add(x)
@@ -205,7 +216,7 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                     marsruudid[q.marsruut_id] = [q.peatus_id]
                 else:
                     marsruudid[q.marsruut_id] += [q.peatus_id]
-        print(all_queries)
+        # print(all_queries)
 
         sobivad_marsruudid = []
 
@@ -226,10 +237,72 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
         leitud_marsruudid = session.query(Marsruut).filter(
             Marsruut.id.in_(sobivad_marsruudid), Marsruut.tüüp == tüüp).all()
 
+        print(leitud_marsruudid)
+
+        dfs_data = {}
+
         for marsruut in leitud_marsruudid:
-            stops = []
+            stops_ids = []
 
             for ids in marsruut.peatused:
+                stop = session.query(MarsruudidPeatused).filter(
+                    MarsruudidPeatused.peatus_id == ids.peatus_id).first()
+                stops_ids += [stop.peatus_id]
+
+            dfs_data[marsruut.id] = stops_ids
+
+    print(f"Marsruudid: {dfs_data}")
+
+    graph = {}
+    for i in dfs_data.keys():
+        for j in range(len(dfs_data[i])):
+            for l in range(j + 1, len(dfs_data[i])):
+                for (a, b) in ((j, l), (l, j)):
+                    a = dfs_data[i][a]
+                    b = dfs_data[i][b]
+                    if a in graph:
+                        if b in graph[a].keys():
+                            graph[a][b].append(i)
+                        else:
+                            graph[a][b] = [i]
+                    else:
+                        graph[a] = {b: [i]}
+
+    def DFS(graph, tee, path=[], current=0):
+        answers = []
+        if current == len(tee) - 1:
+            return [path]
+        curr_node = tee[current]
+        next_node = tee[current + 1]
+        if curr_node not in graph:
+            return []
+        if next_node not in graph[curr_node]:
+            return []
+        for i in graph[curr_node][next_node]:
+            if i not in path:
+                new_path = path.copy()
+                new_path.append(i)
+                answers.extend(DFS(graph, tee, new_path, current + 1))
+        return answers
+
+    new_routes = []
+    for el in routes:
+        for e in el:
+            if e not in new_routes:
+                new_routes.append(e)
+    print(f"Teekond: {new_routes}")
+    sobivad_marsruudid = DFS(graph, new_routes)
+    print(sobivad_marsruudid)
+
+    result = []
+    for marsruut in sobivad_marsruudid:
+        marsruut_vahe = []
+        for marsruut_id in marsruut:
+            stops = []
+            reaalne_marsruut = session.query(Marsruut).filter(
+                Marsruut.id == marsruut_id).first()
+
+            for ids in reaalne_marsruut.peatused:
 
                 peatus = session.query(Peatus).filter(
                     Peatus.id == ids.peatus_id).first()
@@ -241,44 +314,25 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                     "timestamp": stop.aeg
                 })
 
-            result.append({
-                "id": marsruut.id,
-                "transportType": marsruut.tüüp,
-                "price": marsruut.hind,
+            marsruut_vahe.append({
+                "id": reaalne_marsruut.id,
+                "transportType": reaalne_marsruut.tüüp,
+                "price": reaalne_marsruut.hind,
                 "stops": stops
             })
+        result.append(marsruut_vahe)
 
-    print(marsruudid)
-    print(routes)
+    print(f"Result: {result}")
 
-    print(sobivad_marsruudid)
+    # TODO: Valideeri ajad (kuupv ja kellaaeg)
 
-    def custom_sort(item):
-        return sobivad_marsruudid.index(item['id'])
-    # raise HTTPException(status_code=400, detail="väljad vigased")
-    print(result)
-    return sorted(result, key=custom_sort)
+    return result
 
 
 @API.get("/leia_piletid/{tyyp}/{algus}/{sihtkoht}")
 async def piletid(tyyp: str, algus: str, sihtkoht: str, q: List[str] = Query(None)):
     kõik_piletid = päri_marsruudid(tyyp, algus, sihtkoht, q)
     return {"marsruudid": kõik_piletid}
-
-
-@API.get("/kustuta_marsruut/{id}")
-def kustuta(id: int):
-    try:
-        with Session() as session:
-            print(x.id for x in session.query(
-                Marsruut).filter(Marsruut.id == id))
-            session.query(Marsruut).filter(Marsruut.id == id).delete()
-            session.query(MarsruudidPeatused).filter(
-                MarsruudidPeatused.marsruut_id == id).delete(synchronize_session=False)
-            session.commit()
-    except:
-        raise HTTPException(status_code=400, detail="selline kirje puudub")
-    return {"status": 200}
 
 
 @API.get("/valideeri/{id}")

@@ -39,6 +39,7 @@ export default function SignUp() {
           console.log(response);
           throw new Error("Network response was not ok");
         }
+        window.location.href = "/auth/login";
       } catch (error) {
         console.error("Error:", error);
       }

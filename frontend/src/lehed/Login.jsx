@@ -12,13 +12,17 @@ import {
   Box,
   Typography,
   Container,
+  Alert,
 } from "@mui/material";
 import {} from "react-router-dom";
+import { useState } from "react";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function SignIn() {
+  const [fail, setFail] = useState(false);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -37,13 +41,17 @@ export default function SignIn() {
         });
 
         if (response.ok) {
-          console.log(response);
-          console.log("here");
+          const responseData = await response.json();
+          sessionStorage.setItem("access_token", responseData.access_token);
+          setFail(false);
+          console.log(responseData); // Log the response data here
           window.location.href = "/";
         } else {
+          setFail(true);
           throw new Error("Network response was not ok");
         }
       } catch (error) {
+        setFail(true);
         console.error("Error:", error);
       }
     };
@@ -94,10 +102,11 @@ export default function SignIn() {
               id="password"
               autoComplete="current-password"
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Jäta mind sisselogituks"
-            />
+
+            {fail ? (
+              <Alert severity="error">Sisselogimine ebaõnnestus</Alert>
+            ) : null}
+
             <Button
               type="submit"
               fullWidth
@@ -107,11 +116,6 @@ export default function SignIn() {
               Logi sisse
             </Button>
             <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Unustasid parooli?
-                </Link>
-              </Grid>
               <Grid item>
                 <Link href="/registreeri" variant="body2">
                   {"Puudub kasutaja? Registreeri"}

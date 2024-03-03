@@ -30,6 +30,25 @@ import { useParams } from "react-router-dom";
 // TODO: võta vahendid andmebaasist
 let transpordiVahendid = ["buss", "rong", "lennuk"];
 
+async function isAdmin() {
+  try {
+    const response = await fetch("/auth/is_admin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+      },
+    });
+
+    if (response.ok) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+}
+
 function AdminRedigeeri() {
   const defaultTheme = createTheme();
   const { id } = useParams();
@@ -170,6 +189,19 @@ function AdminRedigeeri() {
       stops: [{ id: 0, stop: "", timestamp: null }],
     });
   };
+
+  async function checkAdmin() {
+    try {
+      if (!(await isAdmin())) {
+        window.location.href = "/";
+        return <></>;
+      }
+    } catch {
+      window.location.href = "/";
+      return <></>;
+    }
+  }
+  checkAdmin();
 
   return (
     <>

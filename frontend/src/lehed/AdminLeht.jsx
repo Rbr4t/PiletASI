@@ -40,6 +40,26 @@ const ExpandMore = styled((props) => {
 
 import { useEffect, useState } from "react";
 
+async function isAdmin() {
+  try {
+    const response = await fetch("/auth/is_admin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+      },
+    });
+
+    if (response.ok) {
+      return true;
+    } else {
+      console.log("here!");
+      return false;
+    }
+  } catch (error) {
+    return true;
+  }
+}
+
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
@@ -104,6 +124,18 @@ export default function IndexPage() {
     kustutaMarsruut();
   };
 
+  async function checkAdmin() {
+    try {
+      if (!(await isAdmin())) {
+        window.location.href = "/";
+        return <></>;
+      }
+    } catch {
+      window.location.href = "/";
+      return <></>;
+    }
+  }
+  checkAdmin();
   return (
     <ThemeProvider theme={defaultTheme}>
       <GlobalStyles

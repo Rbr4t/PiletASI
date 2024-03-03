@@ -2,7 +2,13 @@ import { AppBar, Toolbar, Typography, Button, Link, Box } from "@mui/material";
 import { EmojiTransportation } from "@mui/icons-material";
 
 export default function Päis() {
-  let logitud = false;
+  let logitud = sessionStorage.getItem("access_token");
+
+  const logout = async () => {
+    sessionStorage.clear();
+    window.location.href = "/";
+  };
+
   return (
     <AppBar
       position="static"
@@ -34,7 +40,12 @@ export default function Päis() {
         </Box>
 
         {logitud ? (
-          <Button href="/" variant="contained" sx={{ my: 1, mx: 1.5 }}>
+          <Button
+            href="/"
+            onClick={logout}
+            variant="contained"
+            sx={{ my: 1, mx: 1.5 }}
+          >
             Logi välja
           </Button>
         ) : (

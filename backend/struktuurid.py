@@ -1,6 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func
 from sqlalchemy.orm import relationship
-
 from andmebaas import Base
 
 

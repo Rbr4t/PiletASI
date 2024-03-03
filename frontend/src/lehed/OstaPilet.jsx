@@ -113,7 +113,9 @@ export default function OstaPilet() {
                   </Button>
 
                   <Button
-                    disabled={true}
+                    disabled={
+                      sessionStorage.getItem("access_token") ? false : true
+                    }
                     href={`/osta/${piletId}`}
                     variant="contained"
                   >

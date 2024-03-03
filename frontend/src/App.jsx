@@ -18,7 +18,9 @@ function App() {
       <Route path="/piletid" Component={VaataPileteid} />
       <Route path="/piletid/:piletId" Component={OstaPilet} />
       <Route path="/osta/:id" Component={Tehing} />
+
       <Route path="/valideeri" Component={ValideeriPilet} />
+
       <Route path="/admin" Component={AdminLeht} />
       <Route path="/admin/:id" Component={AdminRedigeeri} />
     </Routes>
