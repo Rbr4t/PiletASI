@@ -28,22 +28,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 const defaultTheme = createTheme();
 
 // TODO: olenevalt kas on sisse loginud kasutaja või mitte, siis täida osad väljad juba ära (nimi, email, credit card jne)
-async function getPeatused(id) {
-  try {
-    const response = await fetch(`/api/saa_marsruut/${id}`);
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    console.log(response);
-    return response.json();
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
 
 export default function Tehing() {
-  const { id } = useParams();
-  const [peatus, setPeatus] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -54,23 +40,14 @@ export default function Tehing() {
     cvv: "",
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await getPeatused(id);
-      setPeatus(data);
-      console.log(data);
-    };
+  const peatus = JSON.parse(localStorage.getItem("pilet"));
+  const sihtkohad = JSON.parse(localStorage.getItem("sihtkohad"));
 
-    fetchData();
-  }, []);
-
-  if (!peatus) {
-    // Loading state or error state
-    return <div>Loading...</div>; // You can improve this to show a loading spinner or error message
+  if (!peatus || !sihtkohad) {
+    return <div>Loading...</div>;
   }
 
   const handleChange = (e) => {
-    console.log(e);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -88,6 +65,18 @@ export default function Tehing() {
     event.preventDefault();
     console.log(formData);
   };
+
+  const departureTimestamp = peatus.transport[0].stops.find(
+    (v) => v.stop === sihtkohad[0]
+  ).timestamp;
+  const arrivalTimestamp = peatus.transport[
+    peatus.transport.length - 1
+  ].stops.find((v) => v.stop === sihtkohad[sihtkohad.length - 1]).timestamp;
+
+  const duration = dayjs(arrivalTimestamp).diff(
+    dayjs(departureTimestamp),
+    "hour"
+  );
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -112,9 +101,7 @@ export default function Tehing() {
                   <TableRow>
                     <TableCell colSpan={2}>
                       <Typography variant="h3">
-                        {peatus.stops[0].stop +
-                          " - " +
-                          peatus.stops[peatus.stops.length - 1].stop}
+                        {sihtkohad.join(" - ")}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -124,7 +111,7 @@ export default function Tehing() {
                     </TableCell>
                     <TableCell>
                       <Typography>
-                        {peatus.stops[0].timestamp.substring(0, 34)}
+                        {departureTimestamp.substring(0, 34)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -134,9 +121,7 @@ export default function Tehing() {
                     </TableCell>
                     <TableCell>
                       <Typography>
-                        {peatus.stops[
-                          peatus.stops.length - 1
-                        ].timestamp.substring(0, 34)}
+                        {arrivalTimestamp.substring(0, 34)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -145,7 +130,11 @@ export default function Tehing() {
                       <Typography>Transpordi id: </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>{peatus.id}</Typography>
+                      <Typography>
+                        {peatus.transport
+                          .flatMap((transport) => transport.id)
+                          .join(", ")}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -153,7 +142,7 @@ export default function Tehing() {
                       <Typography>Hind:</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>{peatus.price}</Typography>
+                      <Typography>{`${peatus.hind}€`}</Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -161,7 +150,7 @@ export default function Tehing() {
                       <Typography>Kestvus:</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography>X min</Typography>
+                      <Typography>{duration} hours</Typography>
                     </TableCell>
                   </TableRow>
                 </TableBody>

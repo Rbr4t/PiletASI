@@ -161,6 +161,7 @@ def marsruudid():
                 "price": marsruut.hind,
                 "stops": stops
             })
+    print(result)
     return result
 
 
@@ -168,13 +169,24 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
 
     with Session() as session:
 
-        peatus1 = session.query(Peatus).filter(
-            Peatus.peatus == algus).first().id
-        peatus2 = session.query(Peatus).filter(
-            Peatus.peatus == sihtkoht).first().id
-        if vahepeatused is not None:
-            vahepeatused = [session.query(Peatus).filter(
-                Peatus.peatus == x).first().id for x in vahepeatused]
+        try:
+            peatus1 = session.query(Peatus).filter(
+                Peatus.peatus == algus).first().id
+        except:
+            raise HTTPException(status_code=400, detail="Algus-peatus puudub")
+        try:
+            peatus2 = session.query(Peatus).filter(
+                Peatus.peatus == sihtkoht).first().id
+        except:
+            raise HTTPException(status_code=400, detail="Lõpp-peatus puudub")
+        try:
+            if vahepeatused is not None:
+                vahepeatused = [session.query(Peatus).filter(
+                    Peatus.peatus == x).first().id for x in vahepeatused]
+        except:
+            raise HTTPException(
+                status_code=400, detail="Vahepeatused puudub/puuduvad")
+
         # print(peatus1, peatus2, vahepeatused)
 
         all_queries = []
@@ -234,8 +246,13 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                     sobivad_marsruudid.append(marsruut_id)
 
         # print(sobivad_marsruudid)
-        leitud_marsruudid = session.query(Marsruut).filter(
-            Marsruut.id.in_(sobivad_marsruudid), Marsruut.tüüp == tüüp).all()
+        print(tüüp)
+        if tüüp == "null":
+            leitud_marsruudid = session.query(Marsruut).filter(
+                Marsruut.id.in_(sobivad_marsruudid)).all()
+        else:
+            leitud_marsruudid = session.query(Marsruut).filter(
+                Marsruut.id.in_(sobivad_marsruudid), Marsruut.tüüp == tüüp).all()
 
         print(leitud_marsruudid)
 
@@ -295,8 +312,12 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
     print(sobivad_marsruudid)
 
     result = []
+
     for marsruut in sobivad_marsruudid:
         marsruut_vahe = []
+        marsruudid_tüübid = set()
+        hind_kokku = 0
+
         for marsruut_id in marsruut:
             stops = []
             reaalne_marsruut = session.query(Marsruut).filter(
@@ -313,14 +334,16 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                     "stop": peatus.peatus,
                     "timestamp": stop.aeg
                 })
-
+            marsruudid_tüübid.add(reaalne_marsruut.tüüp)
+            hind_kokku += reaalne_marsruut.hind
             marsruut_vahe.append({
                 "id": reaalne_marsruut.id,
                 "transportType": reaalne_marsruut.tüüp,
                 "price": reaalne_marsruut.hind,
                 "stops": stops
             })
-        result.append(marsruut_vahe)
+        result.append({"transportType": list(marsruudid_tüübid),
+                      "hind": hind_kokku, "transport": marsruut_vahe})
 
     print(f"Result: {result}")
 
@@ -332,7 +355,7 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
 @API.get("/leia_piletid/{tyyp}/{algus}/{sihtkoht}")
 async def piletid(tyyp: str, algus: str, sihtkoht: str, q: List[str] = Query(None)):
     kõik_piletid = päri_marsruudid(tyyp, algus, sihtkoht, q)
-    return {"marsruudid": kõik_piletid}
+    return kõik_piletid
 
 
 @API.get("/valideeri/{id}")

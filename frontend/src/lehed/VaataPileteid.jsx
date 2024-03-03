@@ -33,7 +33,6 @@ const getParameetrid = async () => {
     return [data.peatused, data.pilettypes];
   } catch (error) {
     console.error("Error:", error);
-    // Handle error appropriately, e.g., show a message to the user
   }
 };
 
@@ -55,11 +54,12 @@ export default function VaataPileteid() {
   const [piletiTüübid, setPiletiTüübid] = useState([]);
   const [piletiKohad, setPiletiKohad] = useState([]);
   const [piletTypeSearch, setPiletTypeSearch] = useState("");
+  const [isSearch, setIsSearch] = useState(false);
 
   const [formAndmed, setFormAndmed] = useState({
     algus: null,
     lõpp: null,
-    tüüp: "",
+    tüüp: null,
     lisaPeatused: [],
   });
   const [lisaPeatused, setLisaPeatused] = useState([]);
@@ -80,12 +80,36 @@ export default function VaataPileteid() {
 
   useEffect(() => {
     console.log(lisaPeatused);
-    setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
+    // setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
   }, [lisaPeatused]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(formAndmed);
+    setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
+    const search = async () => {
+      try {
+        let vahepeatused = "";
+        formAndmed.lisaPeatused.forEach((e) => {
+          vahepeatused += `q=${e}&`;
+        });
+
+        const response = await fetch(
+          `/api/leia_piletid/${formAndmed.tüüp}/${formAndmed.algus}/${formAndmed.lõpp}?${vahepeatused}`
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setIsSearch(true);
+
+        console.log(data);
+        setPeatused(data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+      console.log(formAndmed);
+    };
+    search();
   };
 
   return (
@@ -218,7 +242,13 @@ export default function VaataPileteid() {
                   >
                     <Button
                       variant="outlined"
-                      onClick={() => setLisaPeatused([...lisaPeatused, ""])}
+                      onClick={() => {
+                        setFormAndmed({
+                          ...formAndmed,
+                          lisaPeatused: lisaPeatused,
+                        });
+                        setLisaPeatused([...lisaPeatused, ""]);
+                      }}
                     >
                       Lisa vahepeatus
                     </Button>
@@ -232,7 +262,15 @@ export default function VaataPileteid() {
 
             <Grid item xs={12} md="8">
               <Container>
-                <Sõit liinid={peatused} kuupäev={Date()} />
+                <Sõit
+                  liinid={peatused}
+                  isSearch={isSearch}
+                  peatused={[
+                    formAndmed.algus,
+                    ...formAndmed.lisaPeatused,
+                    formAndmed.lõpp,
+                  ]}
+                />
               </Container>
             </Grid>
           </Grid>
