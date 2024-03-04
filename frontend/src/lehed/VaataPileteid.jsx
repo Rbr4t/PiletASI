@@ -36,19 +36,6 @@ const getParameetrid = async () => {
   }
 };
 
-const getPeatusedKõik = async () => {
-  try {
-    const response = await fetch("/api/saa_marsruudid");
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    console.log(response);
-    return response.json();
-  } catch (error) {
-    console.error("Error:", error);
-  }
-};
-
 export default function VaataPileteid() {
   const [peatused, setPeatused] = useState([]);
   const [piletiTüübid, setPiletiTüübid] = useState([]);
@@ -62,6 +49,13 @@ export default function VaataPileteid() {
     tüüp: null,
     lisaPeatused: [],
   });
+
+  const [formAndmedRender, setFormformAndmedRender] = useState({
+    algus: null,
+    lõpp: null,
+    tüüp: null,
+    lisaPeatused: [],
+  });
   const [lisaPeatused, setLisaPeatused] = useState([]);
 
   useEffect(() => {
@@ -69,27 +63,19 @@ export default function VaataPileteid() {
       const inf = await getParameetrid();
       setPiletiTüübid(inf[1]);
       setPiletiKohad(inf[0]);
-
-      const peatusedKõik = await getPeatusedKõik();
-      console.log(peatusedKõik);
-      setPeatused(peatusedKõik);
     };
 
     fetchData();
   }, []);
 
-  useEffect(() => {
-    console.log(lisaPeatused);
-    // setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
-  }, [lisaPeatused]);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setFormAndmed({ ...formAndmed, lisaPeatused: lisaPeatused });
+
     const search = async () => {
       try {
         let vahepeatused = "";
-        formAndmed.lisaPeatused.forEach((e) => {
+        lisaPeatused.forEach((e) => {
           vahepeatused += `q=${e}&`;
         });
 
@@ -97,19 +83,25 @@ export default function VaataPileteid() {
           `/api/leia_piletid/${formAndmed.tüüp}/${formAndmed.algus}/${formAndmed.lõpp}?${vahepeatused}`
         );
         if (!response.ok) {
+          setPeatused([]);
+          localStorage.removeItem("pilet");
           throw new Error("Network response was not ok");
+        } else {
+          const data = await response.json();
+          setIsSearch(true);
+          setFormformAndmedRender({
+            ...formAndmed,
+            lisaPeatused: lisaPeatused,
+          });
+          console.log(data);
+          setPeatused(data);
         }
-        const data = await response.json();
-        setIsSearch(true);
-
-        console.log(data);
-        setPeatused(data);
       } catch (error) {
         console.error("Error:", error);
       }
       console.log(formAndmed);
     };
-    search();
+    await search();
   };
 
   return (
@@ -266,9 +258,9 @@ export default function VaataPileteid() {
                   liinid={peatused}
                   isSearch={isSearch}
                   peatused={[
-                    formAndmed.algus,
-                    ...formAndmed.lisaPeatused,
-                    formAndmed.lõpp,
+                    formAndmedRender.algus,
+                    ...formAndmedRender.lisaPeatused,
+                    formAndmedRender.lõpp,
                   ]}
                 />
               </Container>

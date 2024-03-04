@@ -94,13 +94,22 @@ export default function OstaPilet() {
               <Grid direction="row">
                 <CardContent>
                   <Typography variant="subtitle1">Osta pilet: </Typography>
-                  <Button href={`/osta/${piletId}`} variant="outlined">
+                  <Button
+                    onClick={() =>
+                      sessionStorage.setItem("piletTüüp", "külaline")
+                    }
+                    href={`/osta/${piletId}`}
+                    variant="outlined"
+                  >
                     Külalisena
                   </Button>
 
                   <Button
                     disabled={
                       sessionStorage.getItem("access_token") ? false : true
+                    }
+                    onClick={() =>
+                      sessionStorage.setItem("piletTüüp", "kasutaja")
                     }
                     href={`/osta/${piletId}`}
                     variant="contained"

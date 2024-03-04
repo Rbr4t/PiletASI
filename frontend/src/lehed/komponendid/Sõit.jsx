@@ -32,93 +32,7 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
-function PiletÜks({ liinid }) {
-  const [expanded, setExpanded] = useState([]);
-  console.log(liinid);
-  const handleExpandClick = (index) => {
-    const newExpanded = [...expanded];
-    newExpanded[index] = !newExpanded[index];
-    setExpanded(newExpanded);
-  };
-
-  return liinid.map((liin, index) => (
-    <Card key={index}>
-      <CardHeader
-        action={
-          <Container
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <DirectionsBusIcon />
-            <Typography>{liin.price}</Typography>
-          </Container>
-        }
-        title={
-          liin.stops[0].stop + " - " + liin.stops[liin.stops.length - 1].stop
-        }
-        subheader={<Chip label={liin.id} />}
-      />
-
-      <CardActions disableSpacing>
-        <Button
-          variant="contained"
-          onClick={() => {
-            console.log("here I am");
-            console.log("why isn't it showing my text");
-            console.log(
-              liinid[index].map((v) => v.stops.map((e) => e.price)).flat()
-            );
-            // console.log(liinid.map((v) => v.stops.map((e) => e.price)));
-            localStorage.setItem(
-              "pilet",
-              JSON.stringify({
-                transportType: Array.from(
-                  new Set(liinid.map((v) => v.transportType))
-                ),
-                hind: 1,
-                transport: liinid,
-              })
-            );
-
-            localStorage.setItem("sihtkohad", JSON.stringify(["Tartu", "Nõo"]));
-            window.location.href = `/piletid/${index}`;
-          }}
-        >
-          Osta pilet
-        </Button>
-
-        <ExpandMore
-          expand={expanded[index]}
-          onClick={() => handleExpandClick(index)}
-          aria-expanded={expanded[index]}
-          aria-label="show more"
-        >
-          <ExpandMoreIcon />
-        </ExpandMore>
-      </CardActions>
-      <Collapse in={expanded[index]} timeout="auto" unmountOnExit>
-        <CardContent>
-          <Typography paragraph>Peatused</Typography>
-          <List>
-            {liin.stops.map((d, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={d.stop}
-                  secondary={d.timestamp.replace("T", " ")}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
-      </Collapse>
-    </Card>
-  ));
-}
-
-function PiletMitu({ liinid, peatused }) {
+function Pilet({ liinid, peatused }) {
   const [expanded, setExpanded] = useState([]);
   console.log("here!");
 
@@ -212,7 +126,7 @@ function PiletMitu({ liinid, peatused }) {
   ));
 }
 
-export default function Sõit({ liinid, isSearch, peatused }) {
+export default function Sõit({ liinid, peatused }) {
   console.log("peatused:");
   console.log(peatused);
 
@@ -225,11 +139,7 @@ export default function Sõit({ liinid, isSearch, peatused }) {
         marginTop: 0,
       }}
     >
-      {!isSearch ? (
-        <PiletÜks liinid={liinid} />
-      ) : (
-        <PiletMitu liinid={liinid} peatused={peatused} />
-      )}
+      <Pilet liinid={liinid} peatused={peatused} />
     </List>
   );
 }
