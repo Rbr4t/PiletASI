@@ -1,17 +1,19 @@
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
-import { Alert } from "@mui/material";
+import {
+  Alert,
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Link,
+  TextField,
+  CssBaseline,
+  Button,
+  Avatar,
+} from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
-// TODO remove, this demo shouldn't need to reset the theme.
+
 const defaultTheme = createTheme();
 
 export default function SignUp() {
@@ -27,8 +29,6 @@ export default function SignUp() {
       parool: data.get("password"),
       paroolAgain: data.get("passwordAgain"),
     };
-    console.log(formData);
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (formData.eesnimi === "" || formData.perekonnanimi === "") {
@@ -56,9 +56,7 @@ export default function SignUp() {
           },
           body: JSON.stringify(formData),
         });
-        console.log(response);
         if (!response.ok) {
-          console.log(response);
           throw new Error("Network response was not ok");
         }
         window.location.href = "/login";

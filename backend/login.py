@@ -81,7 +81,6 @@ def create_access_token(data: dict, admins):
         "%Y-%m-%d %H:%M:%S"), "admin": admin})
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
-    print(encoded_jwt)
     return encoded_jwt
 
 
@@ -107,7 +106,6 @@ def read_admins():
     f = open("./admins.txt", mode="r")
 
     for x in f.readlines():
-        print(x)
         admins += [x.strip()]
     f.close()
     return admins
@@ -132,7 +130,6 @@ async def login(credentials: LoginCredentials):
 
                 access_token = create_access_token(
                     {"id": user.id, "email": user_email}, admins)
-                print(access_token)
                 return {"access_token": access_token}
 
     access_token = await query_user(credentials.email, credentials.parool)

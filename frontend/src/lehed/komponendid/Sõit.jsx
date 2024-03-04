@@ -34,10 +34,8 @@ const ExpandMore = styled((props) => {
 
 function Pilet({ liinid, peatused }) {
   const [expanded, setExpanded] = useState([]);
-  console.log("here!");
 
   console.log(peatused);
-  // console.log(peatused.join(" - "));
   const handleExpandClick = (index) => {
     const newExpanded = [...expanded];
     newExpanded[index] = !newExpanded[index];
@@ -81,8 +79,6 @@ function Pilet({ liinid, peatused }) {
           <Button
             variant="contained"
             onClick={() => {
-              console.log("here I am");
-              console.log(liin);
               localStorage.setItem("pilet", JSON.stringify(liin));
               localStorage.setItem("sihtkohad", JSON.stringify(peatused));
               window.location.href = `/piletid/${index}`;
@@ -127,9 +123,6 @@ function Pilet({ liinid, peatused }) {
 }
 
 export default function Sõit({ liinid, peatused }) {
-  console.log("peatused:");
-  console.log(peatused);
-
   return (
     <List
       style={{

@@ -276,44 +276,33 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
             MarsruudidPeatused.marsruut_id.in_(list(ids))).all()
         all_queries.append(query)
 
-        # print(all_queries)
         marsruudid = {}
 
         for query in all_queries:
             for q in query:
-                # print(q.id)
 
                 if marsruudid.get(q.marsruut_id) is None:
                     marsruudid[q.marsruut_id] = [q.peatus_id]
                 else:
                     marsruudid[q.marsruut_id] += [q.peatus_id]
-        # print(all_queries)
 
         sobivad_marsruudid = []
 
-        # print(routes)
         for route in routes:
 
             start = route[0]
             end = route[1]
-            # print(start, end)
 
             for marsruut_id, values in list(marsruudid.items()):
                 if end in values and start in values and values.index(start) < values.index(end):
-                    # print("SIIN: ")
-                    # print(marsruut_id, values)
                     sobivad_marsruudid.append(marsruut_id)
 
-        # print(sobivad_marsruudid)
-        print(tüüp)
         if tüüp == "null":
             leitud_marsruudid = session.query(Marsruut).filter(
                 Marsruut.id.in_(sobivad_marsruudid)).all()
         else:
             leitud_marsruudid = session.query(Marsruut).filter(
                 Marsruut.id.in_(sobivad_marsruudid), Marsruut.tüüp == tüüp).all()
-
-        print(leitud_marsruudid)
 
         dfs_data = {}
 
@@ -326,8 +315,6 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
                 stops_ids += [stop.peatus_id]
 
             dfs_data[marsruut.id] = stops_ids
-
-    print(f"Marsruudid: {dfs_data}")
 
     graph = {}
     for i in dfs_data.keys():
@@ -366,9 +353,7 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
         for e in el:
             if e not in new_routes:
                 new_routes.append(e)
-    print(f"Teekond: {new_routes}")
     sobivad_marsruudid = DFS(graph, new_routes)
-    print(sobivad_marsruudid)
 
     result = []
 
@@ -404,9 +389,6 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
         result.append({"transportType": list(marsruudid_tüübid),
                       "hind": hind_kokku, "transport": marsruut_vahe})
 
-    # print(vahepeatused_algsed)
-    print(f"Result: {result}")
-
     return result, vahepeatused_algsed
 
 
@@ -429,15 +411,13 @@ async def piletid(tyyp: str, algus: str, sihtkoht: str, q: List[str] = Query(Non
     kõik_piletid, vahepeatused_algsed = päri_marsruudid(
         tyyp, algus, sihtkoht, q)
 
-    # TODO: Valideeri ajad (kuupv ja kellaaeg)
     filtered_list = []
     print(kõik_piletid)
     if len(vahepeatused_algsed) > 0:
         for pilet in kõik_piletid:
             print(pilet["transport"])
-            if not pilet_sobib(vahepeatused_algsed, pilet):
-                print("Ei sobi")
-            else:
+            if pilet_sobib(vahepeatused_algsed, pilet):
+
                 print("Sobib")
                 filtered_list.append(pilet)
     else:
@@ -447,7 +427,6 @@ async def piletid(tyyp: str, algus: str, sihtkoht: str, q: List[str] = Query(Non
 
 @API.get("/valideeri/{id}")
 def validate(id: int):
-    # TODO: valideeri kasutaja andmebaasi päringuga
 
     with Session() as session:
         try:

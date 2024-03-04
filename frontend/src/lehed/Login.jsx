@@ -5,8 +5,6 @@ import {
   Avatar,
   CssBaseline,
   TextField,
-  FormControlLabel,
-  Checkbox,
   Link,
   Grid,
   Box,
@@ -17,7 +15,6 @@ import {
 import {} from "react-router-dom";
 import { useState } from "react";
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function SignIn() {
@@ -44,7 +41,6 @@ export default function SignIn() {
           const responseData = await response.json();
           sessionStorage.setItem("access_token", responseData.access_token);
           setFail(false);
-          console.log(responseData); // Log the response data here
           window.location.href = "/";
         } else {
           setFail(true);

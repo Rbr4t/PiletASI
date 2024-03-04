@@ -52,7 +52,6 @@ async function isAdmin() {
     if (response.ok) {
       return true;
     } else {
-      console.log("here!");
       return false;
     }
   } catch (error) {
@@ -73,14 +72,6 @@ const Cell = ({ cell1, cell2 }) => {
       <TableCell align="justify">{cell1}</TableCell>
       <TableCell align="justify">{cell2}</TableCell>
     </TableRow>
-  );
-};
-
-const calcMinutes = (datetime1, datetime2) => {
-  return (
-    Math.round(
-      (Math.abs(new Date(datetime2) - new Date(datetime1)) % 86400000) % 3600000
-    ) / 60000
   );
 };
 

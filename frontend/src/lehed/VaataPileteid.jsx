@@ -19,7 +19,6 @@ import { Delete as DeleteIcon } from "@mui/icons-material";
 import Sõit from "./komponendid/Sõit";
 import Päis from "./komponendid/Päis";
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 const getParameetrid = async () => {
@@ -93,13 +92,11 @@ export default function VaataPileteid() {
             ...formAndmed,
             lisaPeatused: lisaPeatused,
           });
-          console.log(data);
           setPeatused(data);
         }
       } catch (error) {
         console.error("Error:", error);
       }
-      console.log(formAndmed);
     };
     await search();
   };

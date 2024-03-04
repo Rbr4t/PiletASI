@@ -18,7 +18,6 @@ import admin from "../meedia/admin.png";
 import Päis from "./komponendid/Päis";
 import { useEffect, useState } from "react";
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 async function isAdmin() {

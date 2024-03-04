@@ -61,9 +61,8 @@ function AdminRedigeeri() {
   useEffect(() => {
     async function fetchMarsruudid() {
       try {
-        const response = await fetch(`/api/saa_marsruut/${id}`); // Adjust URL as needed
+        const response = await fetch(`/api/saa_marsruut/${id}`);
         const data = await response.json();
-        console.log(data);
         let stops = [];
 
         stops.push({
@@ -87,8 +86,6 @@ function AdminRedigeeri() {
       try {
         const response = await fetch(`/api/saa_parameetrid`); // Adjust URL as needed
         const data = await response.json();
-        console.log(data);
-        console.log("here!");
         setTranspordiVahendid(data.pilettypes);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -102,7 +99,6 @@ function AdminRedigeeri() {
     }
   }, []);
 
-  // TODO: võta andmed andmebaasist, kui on olemas
   const [responseStatus, setResponseStatus] = useState(null);
 
   const sendData = async () => {
@@ -116,7 +112,6 @@ function AdminRedigeeri() {
         },
         body: JSON.stringify(formData),
       });
-      console.log(response);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       } else {
@@ -195,8 +190,6 @@ function AdminRedigeeri() {
     }
     delete formData.customTransportType;
 
-    // Add your logic to publish the form data
-    console.log(formData);
     sendData();
     setFormData({
       transportType: "",

@@ -3,8 +3,6 @@ import Päis from "./komponendid/Päis";
 import { useState, useEffect } from "react";
 import {
   Paper,
-  List,
-  ListItem,
   Button,
   CssBaseline,
   TextField,
@@ -24,10 +22,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
-
-// TODO: olenevalt kas on sisse loginud kasutaja või mitte, siis täida osad väljad juba ära (nimi, email, credit card jne)
 
 export default function Tehing() {
   const [formData, setFormData] = useState({
@@ -71,15 +66,14 @@ export default function Tehing() {
     if (sessionStorage.getItem("piletTüüp") == "kasutaja") {
       getAndmed();
     }
-    console.log("here");
   }, []);
 
   const [aboutBuy, setAboutBuy] = useState(false);
 
   const [formErrors, setFormErrors] = useState([]);
 
-  const [countdown, setCountdown] = useState(1); // Initial countdown value
-  const [buttonDisabled, setButtonDisabled] = useState(true); // Button state
+  const [countdown, setCountdown] = useState(1);
+  const [buttonDisabled, setButtonDisabled] = useState(true);
 
   useEffect(() => {
     if (aboutBuy) {
@@ -157,7 +151,6 @@ export default function Tehing() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const v = validateForm();
-    console.log(v);
     if (v) {
       setAboutBuy(true);
       console.log(formData);
@@ -166,8 +159,6 @@ export default function Tehing() {
 
   const handleSend = () => {
     const saadaEmail = async () => {
-      console.log(peatus);
-
       let b = {
         ...peatus,
         email: formData.email,
@@ -178,13 +169,10 @@ export default function Tehing() {
         arrival: arrivalTimestamp.substring(0, 34),
       };
 
-      console.log(b);
-      console.log("here!");
       const response = await fetch("/api/lisa_uus_pilet", {
         method: "POST",
         body: JSON.stringify(b),
       });
-      console.log(response.status);
 
       if (!response.ok) {
         throw new Error("Failed to fetch user data");
@@ -192,20 +180,9 @@ export default function Tehing() {
       if (response.ok) {
         window.location.href = "/";
       }
-
-      // throw new Error(error);
     };
 
     saadaEmail();
-
-    console.log(localStorage.getItem("pilet"));
-    console.log({
-      ...peatus,
-      email: formData.email,
-      name: formData.firstName + formData.lastName,
-      kasutaja_id: formData.kasutaja_id,
-      vahepeatused: sihtkohad,
-    });
   };
 
   const departureTimestamp = peatus.transport[0].stops.find(
@@ -240,11 +217,15 @@ export default function Tehing() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Väljumine:</TableCell>
-                    <TableCell>{departureTimestamp.substring(0, 34)}</TableCell>
+                    <TableCell>
+                      {departureTimestamp.substring(0, 30).replace("T", " ")}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Saabumine:</TableCell>
-                    <TableCell>{arrivalTimestamp.substring(0, 34)}</TableCell>
+                    <TableCell>
+                      {arrivalTimestamp.substring(0, 30).replace("T", " ")}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Transpordi id: </TableCell>
@@ -257,10 +238,6 @@ export default function Tehing() {
                   <TableRow>
                     <TableCell>Hind:</TableCell>
                     <TableCell>{`${peatus.hind}€`}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Kestvus:</TableCell>
-                    <TableCell>{duration} tundi</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
