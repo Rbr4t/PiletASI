@@ -83,7 +83,10 @@ Käivita rakendus
 
 ## Kuvatõmmised
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+![alt text](https://github.com/Rbr4t/PiletASI/blob/screenshots/screenshots/screen4.png?raw=true)
+![alt text](https://github.com/Rbr4t/PiletASI/blob/screenshots/screenshots/screen2.png?raw=true)
+![alt text](https://github.com/Rbr4t/PiletASI/blob/screenshots/screenshots/screen3.png?raw=true)
+![alt text](https://github.com/Rbr4t/PiletASI/blob/screenshots/screenshots/screen1.png?raw=true)
 
 > ajapuuduse tõttu ei saanud rakendust nii palju viimistleda ja võib kohata *bug*-e
 
