@@ -12,6 +12,7 @@ import {
   InputLabel,
   Button,
   IconButton,
+  Alert,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Delete as DeleteIcon } from "@mui/icons-material";
@@ -251,15 +252,19 @@ export default function VaataPileteid() {
 
             <Grid item xs={12} md="8">
               <Container>
-                <Sõit
-                  liinid={peatused}
-                  isSearch={isSearch}
-                  peatused={[
-                    formAndmedRender.algus,
-                    ...formAndmedRender.lisaPeatused,
-                    formAndmedRender.lõpp,
-                  ]}
-                />
+                {peatused.length > 0 ? (
+                  <Sõit
+                    liinid={peatused}
+                    isSearch={isSearch}
+                    peatused={[
+                      formAndmedRender.algus,
+                      ...formAndmedRender.lisaPeatused,
+                      formAndmedRender.lõpp,
+                    ]}
+                  />
+                ) : (
+                  <Alert severity="info">{"Ei midagi :("}</Alert>
+                )}
               </Container>
             </Grid>
           </Grid>

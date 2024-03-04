@@ -3,6 +3,8 @@ Pileti ostmise ja kontrollimise veebirakendus, mis saadab ka pileti emaili.ASI K
 
 Põhilised kasutatud tehnoloogiad: **React** (kasutajaliides), **FastAPI** (serveri liides), **SQLite** (andmebaasi tarkvara), **MaterialUI** (Reacti komponentide raamistik)
 
+Saab kasutada ka nutiseadmetega.
+
 ## Rakenduse käivitamine
 
 Klooni projekt
