@@ -56,7 +56,7 @@ function Pilet({ liinid, peatused }) {
             }}
           >
             <DirectionsBusIcon />
-            <Typography>{liin.hind}</Typography>
+            <Typography>{liin.hind}€</Typography>
           </Container>
         }
         title={peatused.join(" - ")}

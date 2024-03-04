@@ -112,7 +112,12 @@ export default function IndexPage() {
   const deleteMarsruut = (id) => {
     async function kustutaMarsruut() {
       try {
-        const response = await fetch(`/api/kustuta_marsruut/${id}`); // Adjust URL as needed
+        const response = await fetch(`/api/kustuta_marsruut/${id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+          },
+        }); // Adjust URL as needed
         const data = await response.json();
         setMarsruudid(data);
         setMarsruudid(marsruudid.filter((e) => e.id != id));
@@ -216,16 +221,7 @@ export default function IndexPage() {
                         <Cell cell1="hind" cell2={marsruut.price} />
                         <Cell
                           cell1="marsruut"
-                          cell2={`${marsruut.stops[0].stop} - ${
-                            marsruut.stops[marsruut.stops.length - 1].stop
-                          } `}
-                        />
-                        <Cell
-                          cell1="kestvus"
-                          cell2={`${calcMinutes(
-                            marsruut.stops[0].timestamp,
-                            marsruut.stops[marsruut.stops.length - 1].timestamp
-                          )} min`}
+                          cell2={marsruut.stops.map((v) => v.stop).join(" - ")}
                         />
                       </TableBody>
                     </Table>

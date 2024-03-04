@@ -7,6 +7,7 @@ import {
   Button,
   Typography,
   Grid,
+  Alert,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
@@ -24,11 +25,17 @@ export default function ValideeriPilet() {
     const sendReg = async () => {
       try {
         const response = await fetch(`/api/valideeri/${id}`);
-
+        const resp = await response.json();
         if (response.ok) {
-          setAndmed("Valideeritud, kehtiv kuni: ");
+          setAndmed(
+            `Valideeritud, kehtiv kuni: ${resp.kehtiv
+              .replace("T", " ")
+              .substring(0, 19)}`
+          );
         } else {
-          setAndmed("Pole enam valiidne");
+          console.log("here");
+          console.log(resp.detail);
+          setAndmed(resp.detail);
           throw new Error("Network response was not ok");
         }
       } catch (error) {
@@ -69,9 +76,11 @@ export default function ValideeriPilet() {
 
             {andmed && (
               <div>
-                <Typography variant="h6" gutterBottom>
-                  {andmed}
-                </Typography>
+                {andmed.includes("Valideeritud") ? (
+                  <Alert severity="success">{andmed}</Alert>
+                ) : (
+                  <Alert severity="error">{andmed}</Alert>
+                )}
               </div>
             )}
           </Grid>

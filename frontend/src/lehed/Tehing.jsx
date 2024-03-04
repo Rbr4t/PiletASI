@@ -38,6 +38,7 @@ export default function Tehing() {
     cardHolder: "",
     expiryDate: dayjs(new Date(new Date().setHours(0, 0, 0, 0))),
     cvv: "",
+    kasutaja_id: null,
   });
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function Tehing() {
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
+          kasutaja_id: data.id,
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -69,13 +71,14 @@ export default function Tehing() {
     if (sessionStorage.getItem("piletTüüp") == "kasutaja") {
       getAndmed();
     }
-  });
+    console.log("here");
+  }, []);
 
   const [aboutBuy, setAboutBuy] = useState(false);
 
   const [formErrors, setFormErrors] = useState([]);
 
-  const [countdown, setCountdown] = useState(5); // Initial countdown value
+  const [countdown, setCountdown] = useState(1); // Initial countdown value
   const [buttonDisabled, setButtonDisabled] = useState(true); // Button state
 
   useEffect(() => {
@@ -162,9 +165,47 @@ export default function Tehing() {
   };
 
   const handleSend = () => {
-    console.log(localStorage.getItem("pilet"));
+    const saadaEmail = async () => {
+      console.log(peatus);
 
-    window.location.href = "/";
+      let b = {
+        ...peatus,
+        email: formData.email,
+        name: formData.firstName + " " + formData.lastName,
+        kasutaja_id: formData.kasutaja_id || "",
+        vahepeatused: sihtkohad,
+        departure: departureTimestamp.substring(0, 34),
+        arrival: arrivalTimestamp.substring(0, 34),
+      };
+
+      console.log(b);
+      console.log("here!");
+      const response = await fetch("/api/lisa_uus_pilet", {
+        method: "POST",
+        body: JSON.stringify(b),
+      });
+      console.log(response.status);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+      if (response.ok) {
+        window.location.href = "/";
+      }
+
+      // throw new Error(error);
+    };
+
+    saadaEmail();
+
+    console.log(localStorage.getItem("pilet"));
+    console.log({
+      ...peatus,
+      email: formData.email,
+      name: formData.firstName + formData.lastName,
+      kasutaja_id: formData.kasutaja_id,
+      vahepeatused: sihtkohad,
+    });
   };
 
   const departureTimestamp = peatus.transport[0].stops.find(

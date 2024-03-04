@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import List
+from fastapi import APIRouter, HTTPException, Query, Request
+from typing import List, Optional
 from datetime import datetime
 
-from struktuurid import Marsruut, Peatus, Pilet, MarsruudidPeatused
+from struktuurid import Marsruut, Peatus, Pilet, MarsruudidPeatused, PiletiPeatused
 from andmebaas import Session
 from pydantic import BaseModel
+
+from login import get_current_user
+from emailer import saada_email
 
 API = APIRouter()
 
@@ -28,11 +31,18 @@ class PiletRequest(BaseModel):
 
 # genereerib ja kustutab vajadusel marsruute
 
-# TODO: tuvasta kasutaja
+
+def is_authorized(token):
+    return get_current_user(token)
+
 
 @API.post("/genereeri_marsruut")
-async def read_item(pilet: PiletRequest):
+async def read_item(request: Request, pilet: PiletRequest):
     print(pilet)
+    token = request.headers.get('authorization').split(" ")[1]
+
+    if not is_authorized(token):
+        raise HTTPException(status_code=403, detail="Puudub ligipääs")
 
     if len(pilet.stops) < 2:
         raise HTTPException(status_code=400, detail="liiga vähe peatusi")
@@ -81,7 +91,12 @@ async def read_item(pilet: PiletRequest):
 
 
 @API.get("/kustuta_marsruut/{id}")
-def kustuta(id: int):
+def kustuta(request: Request, id: int):
+    token = request.headers.get('authorization').split(" ")[1]
+
+    if not is_authorized(token):
+        raise HTTPException(status_code=403, detail="Puudub ligipääs")
+
     try:
         with Session() as session:
             print(x.id for x in session.query(
@@ -102,6 +117,8 @@ def parameetrid():
         marsruudid = session.query(Marsruut).all()
 
         return {"peatused": [x.peatus for x in peatused], "pilettypes": list(set([x.tüüp for x in marsruudid]))}
+
+# TODO: fix route editing in frontend and maybe it can work
 
 
 @API.get("/saa_marsruut/{id}")
@@ -144,7 +161,6 @@ def marsruudid():
             stops = []
 
             for ids in marsruut.peatused:
-
                 peatus = session.query(Peatus).filter(
                     Peatus.id == ids.peatus_id).first()
                 stop = session.query(MarsruudidPeatused).filter(
@@ -165,8 +181,51 @@ def marsruudid():
     return result
 
 
-def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
+@API.post("/lisa_uus_pilet")
+async def uusPilet(request: Request):
+    pilet = await request.json()
 
+    print(pilet)  # Print the received data to inspect it
+    with Session() as session:
+        if pilet["kasutaja_id"] != "":
+
+            uus_pilet = Pilet(kasutaja_id=int(
+                pilet["kasutaja_id"]), kasutatud=False)
+        else:
+            uus_pilet = Pilet(kasutaja_id=None, kasutatud=False)
+
+        session.add(uus_pilet)
+        session.commit()
+        print(pilet["transport"])
+        for marsruut in pilet["transport"]:
+            uus_marsruut = PiletiPeatused(
+                pilet_id=uus_pilet.id, marsruut_id=marsruut["id"])
+            session.add(uus_marsruut)
+        session.commit()
+
+        peatus_väljumine_pairs = []
+
+        # Iterate over each transport item
+        for transport_item in pilet['transport']:
+            # Iterate over each stops item within the transport item
+            for stop_item in transport_item['stops']:
+                # Extract stop name and timestamp
+                peatus = stop_item['stop']
+                väljumine = stop_item['timestamp']
+                # Append to the list
+                peatus_väljumine_pairs.append(
+                    {'peatus': peatus, 'väljumine': väljumine})
+        saada_email(
+            pilet["email"], pilet["vahepeatused"][0], pilet["vahepeatused"][-1],
+            uus_pilet.id, pilet["name"], pilet["departure"], pilet["arrival"], pilet["transportType"], peatus_väljumine_pairs)
+    return {"data": pilet}
+
+
+def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
+    if vahepeatused is not None:
+        vahepeatused_algsed = vahepeatused.copy()
+    else:
+        vahepeatused_algsed = []
     with Session() as session:
 
         try:
@@ -205,9 +264,9 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
             end = route[1]
 
             query1 = session.query(MarsruudidPeatused).filter(
-                MarsruudidPeatused.peatus_id == start).all()
+                MarsruudidPeatused.peatus_id == start, MarsruudidPeatused.aeg > datetime.now()).all()
             query2 = session.query(MarsruudidPeatused).filter(
-                MarsruudidPeatused.peatus_id == end).all()
+                MarsruudidPeatused.peatus_id == end, MarsruudidPeatused.aeg > datetime.now()).all()
             query3 = [x.marsruut_id for x in query1] + \
                 [x.marsruut_id for x in query2]
             s = set(filter(lambda x: query3.count(x) > 1, query3))
@@ -323,12 +382,12 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
             reaalne_marsruut = session.query(Marsruut).filter(
                 Marsruut.id == marsruut_id).first()
 
-            for ids in reaalne_marsruut.peatused:
+            for index, ids in enumerate(reaalne_marsruut.peatused):
 
                 peatus = session.query(Peatus).filter(
                     Peatus.id == ids.peatus_id).first()
                 stop = session.query(MarsruudidPeatused).filter(
-                    MarsruudidPeatused.peatus_id == ids.peatus_id).first()
+                    MarsruudidPeatused.peatus_id == ids.peatus_id, MarsruudidPeatused.marsruut_id == ids.marsruut_id).first()
                 stops.append({
                     "id": peatus.id,
                     "stop": peatus.peatus,
@@ -345,17 +404,45 @@ def päri_marsruudid(tüüp, algus, sihtkoht, vahepeatused=[]):
         result.append({"transportType": list(marsruudid_tüübid),
                       "hind": hind_kokku, "transport": marsruut_vahe})
 
+    # print(vahepeatused_algsed)
     print(f"Result: {result}")
 
-    # TODO: Valideeri ajad (kuupv ja kellaaeg)
+    return result, vahepeatused_algsed
 
-    return result
+
+def pilet_sobib(vahepeatused, pilet):
+    graafik = pilet["transport"]
+    for vahepeatus in vahepeatused:
+        ajad = []
+        for buss in graafik:
+            for peatus in buss["stops"]:
+                if peatus["stop"] == vahepeatus:
+                    ajad.append(peatus["timestamp"])
+
+        if ajad[1] < ajad[0]:
+            return False
+    return True
 
 
 @API.get("/leia_piletid/{tyyp}/{algus}/{sihtkoht}")
 async def piletid(tyyp: str, algus: str, sihtkoht: str, q: List[str] = Query(None)):
-    kõik_piletid = päri_marsruudid(tyyp, algus, sihtkoht, q)
-    return kõik_piletid
+    kõik_piletid, vahepeatused_algsed = päri_marsruudid(
+        tyyp, algus, sihtkoht, q)
+
+    # TODO: Valideeri ajad (kuupv ja kellaaeg)
+    filtered_list = []
+    print(kõik_piletid)
+    if len(vahepeatused_algsed) > 0:
+        for pilet in kõik_piletid:
+            print(pilet["transport"])
+            if not pilet_sobib(vahepeatused_algsed, pilet):
+                print("Ei sobi")
+            else:
+                print("Sobib")
+                filtered_list.append(pilet)
+    else:
+        filtered_list = kõik_piletid
+    return filtered_list
 
 
 @API.get("/valideeri/{id}")
@@ -363,12 +450,13 @@ def validate(id: int):
     # TODO: valideeri kasutaja andmebaasi päringuga
 
     with Session() as session:
-        query = session.query(Pilet).filter(Pilet.id == id).first()
-        print(query)
-        if query:
-            return {"status": 200}
-        else:
+        try:
+            query = session.query(Pilet).filter(Pilet.id == id).first()
+            if not query.kasutatud and datetime.now() < query.kestev:
+                return {"kehtiv": query.kestev}
+            else:
+                raise HTTPException(
+                    status_code=400, detail="pilet kehtetu")
+        except AttributeError:
             raise HTTPException(
                 status_code=400, detail="selline kirje puudub")
-
-    return {"status": 200}

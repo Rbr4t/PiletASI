@@ -27,9 +27,6 @@ import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-// TODO: võta vahendid andmebaasist
-let transpordiVahendid = ["buss", "rong", "lennuk"];
-
 async function isAdmin() {
   try {
     const response = await fetch("/auth/is_admin", {
@@ -52,6 +49,7 @@ async function isAdmin() {
 function AdminRedigeeri() {
   const defaultTheme = createTheme();
   const { id } = useParams();
+  const [transpordiVahendid, setTranspordiVahendid] = useState([]);
 
   const [formData, setFormData] = useState({
     transportType: "",
@@ -84,8 +82,23 @@ function AdminRedigeeri() {
         console.error("Error fetching data:", error);
       }
     }
+
+    async function saaParameetrid() {
+      try {
+        const response = await fetch(`/api/saa_parameetrid`); // Adjust URL as needed
+        const data = await response.json();
+        console.log(data);
+        console.log("here!");
+        setTranspordiVahendid(data.pilettypes);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
     if (id !== "uus") {
       fetchMarsruudid();
+    } else if (id === "uus") {
+      saaParameetrid();
     }
   }, []);
 
@@ -99,12 +112,15 @@ function AdminRedigeeri() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         },
         body: JSON.stringify(formData),
       });
       console.log(response);
       if (!response.ok) {
         throw new Error("Network response was not ok");
+      } else {
+        window.location.href = "/admin/uus";
       }
 
       setResponseStatus(response.status);

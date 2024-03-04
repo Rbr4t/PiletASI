@@ -1,6 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func, Boolean
 from sqlalchemy.orm import relationship
 from andmebaas import Base
+from datetime import datetime, timedelta
 
 
 class Kasutaja(Base):
@@ -18,10 +19,19 @@ class Pilet(Base):
     __tablename__ = 'piletid'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    kasutaja_id = Column(Integer, ForeignKey("kasutajad.id"))
-    marsruut_id = Column(Integer, ForeignKey("marsruudid.id"))
+    kasutaja_id = Column(Integer, ForeignKey("kasutajad.id"), nullable=True)
+    marsruudid = relationship("PiletiPeatused", backref="piletid")
     ostetud = Column(DateTime(timezone=True), server_default=func.now())
-    kestev = Column(Integer, nullable=False)
+    kestev = Column(DateTime(timezone=True),
+                    default=datetime.utcnow() + timedelta(days=30))
+    kasutatud = Column(Boolean, default=False)
+
+
+class PiletiPeatused(Base):
+    __tablename__ = 'piletid_peatused'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pilet_id = Column(Integer, ForeignKey("piletid.id"))
+    marsruut_id = Column(Integer, ForeignKey("marsruudid.id"))
 
 
 class Marsruut(Base):

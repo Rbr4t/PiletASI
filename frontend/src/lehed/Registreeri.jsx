@@ -8,12 +8,15 @@ import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import { Alert } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
+import { useState } from "react";
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function SignUp() {
+  const [error, setError] = useState("");
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -22,8 +25,27 @@ export default function SignUp() {
       perekonnanimi: data.get("lastName"),
       email: data.get("email"),
       parool: data.get("password"),
+      paroolAgain: data.get("passwordAgain"),
     };
     console.log(formData);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (formData.eesnimi === "" || formData.perekonnanimi === "") {
+      setError("Palun sisesta korrektsed eesnimi ja/või perekonnanimi.");
+      return;
+    }
+    if (!emailRegex.test(formData.email)) {
+      setError("Palun sisesta korrektne e-posti aadress.");
+      return;
+    }
+
+    // Validate if passwords match
+    if (formData.parool !== formData.paroolAgain && formData.parool != "") {
+      setError("Sisestatud paroolid ei ühti.");
+      return;
+    }
+    setError("");
 
     const sendReg = async () => {
       try {
@@ -39,7 +61,7 @@ export default function SignUp() {
           console.log(response);
           throw new Error("Network response was not ok");
         }
-        window.location.href = "/auth/login";
+        window.location.href = "/login";
       } catch (error) {
         console.error("Error:", error);
       }
@@ -129,6 +151,7 @@ export default function SignUp() {
                 />
               </Grid>
             </Grid>
+            {error != "" ? <Alert severity="error">{error}</Alert> : null}
             <Button
               type="submit"
               fullWidth

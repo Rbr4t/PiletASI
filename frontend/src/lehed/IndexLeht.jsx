@@ -29,13 +29,12 @@ async function isAdmin() {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       },
     });
+    const ans = await response.json();
 
-    if (response.ok) {
-      return true;
-    } else {
-      console.log("here!");
+    if (!response.ok) {
       return false;
     }
+    return ans;
   } catch (error) {
     return false;
   }

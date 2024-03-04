@@ -132,6 +132,7 @@ async def login(credentials: LoginCredentials):
 
                 access_token = create_access_token(
                     {"id": user.id, "email": user_email}, admins)
+                print(access_token)
                 return {"access_token": access_token}
 
     access_token = await query_user(credentials.email, credentials.parool)
@@ -146,10 +147,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
                                           detail="Could not Validate Credentials",
                                           headers={"WWW-Authenticate": "Bearer"})
     admins = read_admins()
-    token = verify_token_access(token, admins, credentials_exception)
-    if token.get("admin"):
-        return True
-    return False
+    try:
+        token = verify_token_access(token, admins, credentials_exception)
+        if token.get("admin"):
+            return True
+    except:
+        return False
 
 
 @auth.get("/get_user_info")
@@ -161,4 +164,4 @@ def userinfo(token: str = Depends(oauth2_scheme)):
     user_id = token.get("id")
     with Session() as session:
         user = session.query(Kasutaja).filter(Kasutaja.id == user_id).first()
-        return {"firstName": user.nimi.split(' ', 1)[0], "lastName": user.nimi.split(' ', 1)[1], "email": user.email}
+        return {"id": user.id, "firstName": user.nimi.split(' ', 1)[0], "lastName": user.nimi.split(' ', 1)[1], "email": user.email}
