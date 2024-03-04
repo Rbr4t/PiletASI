@@ -83,7 +83,10 @@ Käivita rakendus
 
 ## Kuvatõmmised
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+
 
 > ajapuuduse tõttu ei saanud rakendust nii palju viimistleda ja võib kohata *bug*-e
 
